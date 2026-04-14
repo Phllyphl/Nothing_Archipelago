@@ -1,4 +1,3 @@
-import numpy
 import pygame
 from .buttons import Button
 from .events import LocationClearedEvent
@@ -39,7 +38,7 @@ class UI:
         self.shops = [[[0 for _ in range (4)] for _ in range (10)] for _ in range (4)]
         self.sound_s = [0 for _ in range(10)]
         self.gear_surf = frames['gear']
-        self.mile_stones = numpy.zeros((86400,4))
+        self.mile_stones = [[0 for _ in range (4)] for _ in range (86400)]
         self.StartButton = Button(self.font,"Start Doing Nothing",WINDOW_WIDTH/2,WINDOW_HEIGHT/2,(255,255,255),0)
         self.quitbutton = Button(self.font,"Quit Doing Nothing",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+80,(255,255,255),0)
         self.backbutton = Button(self.font,"Return to Menu",WINDOW_WIDTH-160,WINDOW_HEIGHT-40,(255,255,255),0)
@@ -424,15 +423,15 @@ class UI:
             self.playing_state = 0
         if data.shop[0][1][2] == 1 and self.max_time > self.milestone1button.value and self.delta > 0.5:
             test = int(self.milestone1button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
                 
             data.timecap = data.timecaps * data.timecapint
             self.milestone1button.value = 0
@@ -444,14 +443,14 @@ class UI:
             i = 0
             loc = 0
             while looping:
-                if data.milestones[i,1] == 1:
+                if data.milestones[i][1] == 1:
                     i+=1
                 else:
                     loc += 1
-                    seconds = int(data.milestones[i,0]) % 60
-                    minutes = int(data.milestones[i,0]/60) % 60
-                    hours = int(data.milestones[i,0]/3600) % 24
-                    days = int(data.milestones[i,0]/86400)
+                    seconds = int(data.milestones[i][0]) % 60
+                    minutes = int(data.milestones[i][0]/60) % 60
+                    hours = int(data.milestones[i][0]/3600) % 24
+                    days = int(data.milestones[i][0]/86400)
                     if days > 0:
                         timeformated = str(days) + " days, " + str(hours) + " hours, " + str(minutes) + " minutes, and " + str(seconds) + " seconds"
                     elif hours > 0:
@@ -461,29 +460,29 @@ class UI:
                     else:
                         timeformated = str(seconds) + " seconds"
                     if loc == 1:
-                        self.milestone1button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+20,data.colors[data.colorselect][1],data.milestones[i,0])
+                        self.milestone1button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+20,data.colors[data.colorselect][1],data.milestones[i][0])
                         if i == data.goal:
                             self.milestone2button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+60,data.colors[data.colorselect][1],1)
                             self.milestone3button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+100,data.colors[data.colorselect][1],1)
                             self.milestone4button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],1)
                             self.milestone5button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],1)
                     elif loc == 2:
-                        self.milestone2button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+60,data.colors[data.colorselect][1],data.milestones[i,0])
+                        self.milestone2button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+60,data.colors[data.colorselect][1],data.milestones[i][0])
                         if i == data.goal:
                             self.milestone3button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+100,data.colors[data.colorselect][1],1)
                             self.milestone4button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],1)
                             self.milestone5button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],1)
                     elif loc == 3:
-                        self.milestone3button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+100,data.colors[data.colorselect][1],data.milestones[i,0])
+                        self.milestone3button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+100,data.colors[data.colorselect][1],data.milestones[i][0])
                         if i == data.goal:
                             self.milestone4button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],1)
                             self.milestone5button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],1)
                     elif loc == 4:
-                        self.milestone4button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],data.milestones[i,0])
+                        self.milestone4button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],data.milestones[i][0])
                         if i == data.goal:
                             self.milestone5button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],1)
                     elif loc == 5:
-                        self.milestone5button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],data.milestones[i,0])
+                        self.milestone5button.updatetr(timeformated + " Milestone",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],data.milestones[i][0])
                         looping = False
                     elif i == data.goal:
                         self.milestone1button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+20,data.colors[data.colorselect][1],1)
@@ -494,71 +493,71 @@ class UI:
                     i+=1
         if self.milestone1button.draw(self.display_surface) and self.max_time > self.milestone1button.value and self.delta > 0.5:
             test = int(self.milestone1button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
             data.timecap = data.timecaps * data.timecapint
             self.milestone1button.value = 0
             self.delta = 0
         if self.milestone2button.draw(self.display_surface) and self.max_time > self.milestone2button.value and self.delta > 0.5:
             test = int(self.milestone2button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
             data.timecap = data.timecaps * data.timecapint
             self.milestone2button.value = 0
             self.delta = 0
         if self.milestone3button.draw(self.display_surface) and self.max_time > self.milestone3button.value and self.delta > 0.5:
             test = int(self.milestone3button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
             data.timecap = data.timecaps * data.timecapint
             self.milestone3button.value = 0
             self.delta = 0
         if self.milestone4button.draw(self.display_surface) and self.max_time > self.milestone4button.value and self.delta > 0.5:
             test = int(self.milestone4button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
             data.timecap = data.timecaps * data.timecapint
             self.milestone4button.value = 0
             self.delta = 0
         if self.milestone5button.draw(self.display_surface) and self.max_time > self.milestone5button.value and self.delta > 0.5:
             test = int(self.milestone5button.value/data.milestoneint)-1
-            data.milestones[test,1] = 1
-            data.milestones[test,0] = 0
+            data.milestones[test][1] = 1
+            data.milestones[test][0] = 0
             if data.archipelagoactive == False:
                 data.timecaps += 1
             else:
-                data.checked_locations_player.add(data.milestones[test,2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test,2]))
-                if data.milestones[test,2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test,2])
+                data.checked_locations_player.add(data.milestones[test][2])
+                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                if data.milestones[test][2] in data.missing_locations:
+                        data.missing_locations.remove(data.milestones[test][2])
             data.timecap = data.timecaps * data.timecapint
             self.milestone5button.value = 0
             self.delta = 0

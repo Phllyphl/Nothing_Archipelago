@@ -28,8 +28,8 @@ class archipelagoUI:
         data.checked_locations_player = data.checked_locations
         for location in data.checked_locations_player:
             if location <= 86400:
-                data.milestones[location-1,1] = 1
-                data.milestones[location-1,0] = 0
+                data.milestones[location-1][1] = 1
+                data.milestones[location-1][0] = 0
             elif location <= 86409:
                 data.spentcoins += data.shop[((location-86401)//10)%10][(location-86401)%10][3]
                 data.shop[((location-86401)//10)%10][(location-86401)%10][1] = 1

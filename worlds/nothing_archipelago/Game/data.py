@@ -1,5 +1,3 @@
-import numpy
-
 class Data:
     def __init__(self,ui, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins,
                           milestone_interval, timecap_interval, Starting_coin_count, Death_link, Death_link_mercy, Time_dilation):
@@ -55,7 +53,7 @@ class Data:
         self.currentsong = self._musicselect
         self.goalled = False
         self.leave = 0
-        self._milestones = numpy.zeros((86400,4))
+        self._milestones = [[0 for _ in range(4)] for _ in range (86400)]
         self.checked_locations_player: set[int] = []
         self.checked_locations: set[int] = []
         self.missing_locations: list[int] = []
@@ -93,13 +91,13 @@ class Data:
         self.names[9][2] = "song10 : "
         self.names[0][3] = "Sound1    : "
         self.names[1][3] = "Sound2   : "
-        self.names[2][3] = "Sound2   : "
-        self.names[3][3] = "Sound2   : "
-        self.names[4][3] = "Sound2   : "
-        self.names[5][3] = "Sound2   : "
-        self.names[6][3] = "Sound2   : "
-        self.names[7][3] = "Sound2   : "
-        self.names[8][3] = "Sound2   : "
+        self.names[2][3] = "Sound3   : "
+        self.names[3][3] = "Sound4   : "
+        self.names[4][3] = "Sound5   : "
+        self.names[5][3] = "Sound6   : "
+        self.names[6][3] = "Sound7   : "
+        self.names[7][3] = "Sound8   : "
+        self.names[8][3] = "Sound9   : "
         self.names[9][3] = "Sound10 : "
         self.colors =[[0 for _ in range (2)] for _ in range (11)]
         self.colors[0][0] = (100,100,100)
@@ -125,8 +123,8 @@ class Data:
         self.colors[10][0] = (0,0,0)
         self.colors[10][1] = (40,200,40)
         for x in range(86400):
-            self._milestones[x,0] = (x+1)*self.milestoneint
-            self._milestones[x,2] = x+1
+            self._milestones[x][0] = (x+1)*self.milestoneint
+            self._milestones[x][2] = x+1
         self._shop = [[[0 for _ in range (5)] for _ in range (10)] for _ in range (4)]
         self._shop[1][0][1] = 1
         self._shop[1][0][2] = 1
@@ -146,7 +144,7 @@ class Data:
         self.connected = 1
         self.milestoneint = milestone_interval
         for x in range(86400):
-            self._milestones[x,0] = (x+1)*self.milestoneint
+            self._milestones[x][0] = (x+1)*self.milestoneint
         self.archipelagoactive = True
         self.goal = goal
         self.timecapint = timecap_interval
