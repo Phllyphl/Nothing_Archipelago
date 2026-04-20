@@ -13,3 +13,11 @@ class LocationClearedEvent(Event):
 @dataclass
 class VictoryEvent(Event):
     pass
+
+@dataclass
+class DeathEvent(Event):
+    pass
+
+@dataclass
+class DisconnectEvent(Event):
+    pass

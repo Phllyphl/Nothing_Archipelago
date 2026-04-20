@@ -6,7 +6,7 @@ class Data:
         self.archipelagoactive = False
         self.goal = goal
         self._milestonesforce = 1
-        self._points = 0
+        self._points = Starting_coin_count
         self.timecapint = timecap_interval
         self.randoopts = [False for _ in range (4)]
 
@@ -29,11 +29,16 @@ class Data:
 
         self.devcount = 0
         self.timescale = Time_dilation
+        self.timescaledev = 1
         self.devmode = 0
         self.giftcoins = gift_coins
         self.giftedcoins = Starting_coin_count
         self.spentcoins = 0
 
+        self.ddelay = 0
+        self.clientexists = 0
+        self.deathtext = ""
+        self.recievedeath = False
         self.deathlink = Death_link
         self.deathlinkcount = 0
         self.deathlinkmercy = Death_link_mercy
@@ -44,6 +49,7 @@ class Data:
         self._playingstate = 0
         self._shopstate = 0
         self._peaktime = 0
+        self._totaltime = 0
         self._timecaps = 1
         self._forcestatechange = 0
         self._timecap = self.timecapint
@@ -58,7 +64,7 @@ class Data:
         self.checked_locations: set[int] = []
         self.missing_locations: list[int] = []
         
-        self.names = [[0 for _ in range(4)] for _ in range (10)]
+        self.names = [[0 for _ in range(4)] for _ in range (11)]
         self.names[0][0] = "Auto-restart      : "
         self.names[1][0] = "Auto-milestone   : "
         self.names[2][0] = "Unlock next Digit : "
@@ -69,6 +75,7 @@ class Data:
         self.names[7][0] = "Unlock next Digit : "
         self.names[8][0] = ""
         self.names[9][0] = ""
+        self.names[10][0] = ""
         self.names[0][1] = "Gray       : "
         self.names[1][1] = "Blue        : "
         self.names[2][1] = "Green     : "
@@ -79,6 +86,7 @@ class Data:
         self.names[7][1] = "Yellow    : "
         self.names[8][1] = "Purple   : "
         self.names[9][1] = "Cyan      : "
+        self.names[10][1] = "Matrix     : "
         self.names[0][2] = "song1    : "
         self.names[1][2] = "song2   : "
         self.names[2][2] = "song3   : "
@@ -89,6 +97,7 @@ class Data:
         self.names[7][2] = "song8   : "
         self.names[8][2] = "song9   : "
         self.names[9][2] = "song10 : "
+        self.names[10][2] = ""
         self.names[0][3] = "Sound1    : "
         self.names[1][3] = "Sound2   : "
         self.names[2][3] = "Sound3   : "
@@ -99,6 +108,7 @@ class Data:
         self.names[7][3] = "Sound8   : "
         self.names[8][3] = "Sound9   : "
         self.names[9][3] = "Sound10 : "
+        self.names[10][3] = ""
         self.colors =[[0 for _ in range (2)] for _ in range (11)]
         self.colors[0][0] = (100,100,100)
         self.colors[0][1] = (255,255,255)
@@ -125,7 +135,7 @@ class Data:
         for x in range(86400):
             self._milestones[x][0] = (x+1)*self.milestoneint
             self._milestones[x][2] = x+1
-        self._shop = [[[0 for _ in range (5)] for _ in range (10)] for _ in range (4)]
+        self._shop = [[[0 for _ in range (5)] for _ in range (11)] for _ in range (4)]
         self._shop[1][0][1] = 1
         self._shop[1][0][2] = 1
         for x in range (4):
@@ -134,7 +144,7 @@ class Data:
                     self._shop[x][y][3] = 1
                 else:
                     self._shop[x][y][3] = 2
-                self._shop[x][y][4] = 86400+(x*10)+(y)
+                self._shop[x][y][4] = 86400+(x*10)+(y+1)
         self._shop[0][8][3] = ""
         self._shop[0][9][3] = ""
         
@@ -177,6 +187,15 @@ class Data:
     def maxtime(self,value):
         self._maxtime = value
         self.ui.maxtimer(self.maxtime)
+
+    @property
+    def totaltime(self):
+        return self._totaltime
+    
+    @totaltime.setter
+    def totaltime(self,value):
+        self._totaltime = value
+        self.ui.totaltimer(self.totaltime)
 
     @property
     def peaktime(self):

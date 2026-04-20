@@ -13,7 +13,7 @@ from ..client.nothing_archipelago_client import main
 class Game:
     def __init__(self, goal = 86400, shop_upgrades = True, shop_colors = True,
                   shop_music = True, shop_sounds = True, gift_coins = True, milestone_interval = 1,
-                    timecap_interval = 1, Starting_coin_count = 0, Death_link = False, Death_link_mercy = 1, Time_dilation = 1):
+                    timecap_interval = 1, Starting_coin_count = 4, Death_link = False, Death_link_mercy = 1, Time_dilation = 1):
         pygame.init()
         self.display_surface = pygame.display.set_mode((1920, 1080),pygame.SCALED | pygame.FULLSCREEN)
         self.current_dir = Path(__file__).parent.resolve()
@@ -35,7 +35,7 @@ class Game:
         self.clock = pygame.time.Clock()
         
         self.archui = archipelagoUI(self.font,self.data)
-        self.current_stage = Level(self.data,self.audio_files)
+        self.current_stage = Level(self.data,self.audio_files, self.font)
         #asyncio.create_task(main(self.data,self.archui),name="clientcreator")
         
     def update_settings(self, goal = 86400, shop_upgrades = True, shop_colors = True, shop_music = True, shop_sounds = True, gift_coins = True,
@@ -298,17 +298,17 @@ class Game:
 
 
         
-    #make connection fail reset archipelago active at aome point please
-    #make sure the client closes
-    #implement deathlink
+    #make sure games asyntask actually closes
+    #add the ability to save make time
+    #make test cases for client
 
     async def run(self):
         await asyncio.sleep(0)
-        test = 0
+        self.data.clientexists = 0
         while True:
-            if test == 0 and self.data.archipelagoactive == True:
+            if self.data.clientexists == 0 and self.data.archipelagoactive == True:
                 asyncio.create_task(main(self.data,self.archui),name="clientcreator")
-                test = 1
+                self.data.clientexists = 1
             dt = self.clock.get_time()/1000
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or self.data.leave == 1:
@@ -317,7 +317,7 @@ class Game:
                 elif ((event.type == pygame.KEYDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.JOYAXISMOTION or event.type == pygame.JOYBALLMOTION or event.type == pygame.JOYHATMOTION or event.type == pygame.JOYBUTTONDOWN) and (self.data.playingstate > 0 and self.data.playingstate < 4)):
                     #print("press")
                     self.current_stage.changegamestate()
-                elif event.type == pygame.KEYDOWN and self.data.playingstate == 4:
+                elif event.type == pygame.KEYDOWN and self.data.playingstate == -1:
                     if event.key == pygame.K_BACKSPACE:
                         self.data.inputs[self.data.activeinput] = self.data.inputs[self.data.activeinput] [:-1]
                     else:

@@ -1,14 +1,17 @@
 import pygame
 from random import randint
-from .events import VictoryEvent
+from .events import VictoryEvent, DeathEvent
 
 class Level:
-    def __init__(self,data,audio_files):
+    def __init__(self,data,audio_files, font):
         self.display_surface= pygame.display.get_surface()
         self.data = data
         self.delta = 0
         self.delta2 = 0
+        self.delta3 = 0
+        self.font = font
         self.audiofiles = audio_files
+        self.recentdeath = False
         self.data.timecap = self.data._timecap
         
         
@@ -43,7 +46,7 @@ class Level:
                 if self.data.points == 0:
                     self.data.points = 1
             else:
-                self.data.currenttime += dt * self.data.timescale
+                self.data.currenttime += dt * self.data.timescale * self.data.timescaledev
         else:
             self.data.currenttime = 0
 
@@ -53,12 +56,23 @@ class Level:
 
     def changegamestate(self):
         check = 1.2
+        if self.delta > 0.7:
+            if self.data.playingstate == 2:
+                self.data.deathlinkcount += 1
+                print(self.data.deathlinkcount)
+        if self.data.deathlinkcount >= self.data.deathlinkmercy:
+            self.data.deathlinkcount = 0
+            self.data.queued_events.append(DeathEvent())
+
+
+
         if self.data.playingstate == 3 and self.delta > check:
             self.data.playingstate = 1
             self.delta = 0
         elif self.data.playingstate == 2 and self.delta > 0.7:
             self.data.playingstate = 3
             self.data.peaktime = self.data.currenttime
+            self.data.totaltime += self.data.currenttime
             self.delta = 0
             #print(self.data.peaktime)
         elif self.data.playingstate == 1 and self.delta > check:
@@ -70,7 +84,8 @@ class Level:
 
     def checkgoal(self):
         if self.data.maxtime >= self.data.goal and self.data.goalled == False:
-            self.data.playingstate = 5
+            self.data.totaltime += self.data.currenttime
+            self.data.playingstate = -2
             self.data.goalled = True
             self.data.queued_events.append(VictoryEvent())
         
@@ -259,7 +274,23 @@ class Level:
         if soundcheck == 1:
             self.delta2 = 0
             
-            
+    def checkdeath(self,data):
+        if data.deathlink:
+            check = 5
+            if data.recievedeath and self.delta3 > check and self.data.playingstate == 2:
+                self.recievedeath = False
+                self.delta3 = 0
+                self.data.totaltime += self.data.currenttime
+                self.data.playingstate = 1
+                self.recentdeath = True
+            elif self.delta3 < 10 and self.recentdeath:
+                text_surf1 = self.font.render(data.deathtext,False,data.colors[data.colorselect][1])
+                text_rect1 = text_surf1.get_frect(center = (data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/4))
+                self.display_surface.blit(text_surf1, text_rect1)
+            elif self.recentdeath:
+                self.delta3 = 0
+                self.recentdeath = False
+
             
 
     def run(self,dt):
@@ -272,8 +303,10 @@ class Level:
             self.checkdigits()
             self.checkgoal()
             self.sounds(self.data)
+            self.checkdeath(self.data)
             self.delta += dt
             self.delta2 += dt
+            self.delta3 += dt
         else:
             self.display_surface.fill(self.data.colors[self.data.colorselect][0])
         

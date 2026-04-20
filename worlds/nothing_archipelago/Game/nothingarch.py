@@ -144,7 +144,7 @@ class archipelagoUI:
             data.archipelagoactive = True
     
     def update(self,data,dt):
-        if data.playingstate == 4:
+        if data.playingstate == -1:
             self.serverinputs(data)
         elif data.playingstate > 0 and data.archipelagoactive == True:
             self.connected(data)

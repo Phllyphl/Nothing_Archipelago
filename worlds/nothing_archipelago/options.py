@@ -186,6 +186,8 @@ class Deathlink(Toggle):
 class Deathlinkmercy(Range):
     """
     Because you only hate fun a little bit
+
+    Decide how many 'deaths' (times you do something) it takes to send a death
     """
 
     display_name = "Timer Resets to send a death"

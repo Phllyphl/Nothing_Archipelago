@@ -4,15 +4,18 @@ from argparse import Namespace
 from enum import Enum
 from CommonClient import CommonContext
 from typing import TYPE_CHECKING, Any
+from random import randint
 
 from CommonClient import logger, server_loop
 from NetUtils import ClientStatus
 
-from ..Game.events import LocationClearedEvent, VictoryEvent
+from ..Game.events import LocationClearedEvent, VictoryEvent, DeathEvent, DisconnectEvent
 
 
 if TYPE_CHECKING:
     import kvui
+
+
 
 class ConnectionStatus(Enum):
     NOT_CONNECTED = 0
@@ -56,6 +59,9 @@ class Nothing_Archipelago_Context(CommonContext):
         self.items_received = []
         self.slot_data = {}
         self.needsync = 0
+        self.needdeath = False
+        self.needdisconnect = False
+        self.updatedeathlink = False
         
 
     async def server_auth(self, password_requested: bool = False) -> None:
@@ -81,6 +87,8 @@ class Nothing_Archipelago_Context(CommonContext):
 
 
             try:
+                if self.updatedeathlink:
+                    await self.on_deathlink_toggle()
                 if self.needsync == 1:
                     await self.send_msgs([{"cmd": "Sync"}])
                     self.needsync = 0
@@ -96,7 +104,38 @@ class Nothing_Archipelago_Context(CommonContext):
                         self.highest_processed_item_index += 1
                     self.archui.updateitems(self.data,self.items_received)
 
-#fix this bullshit
+                if self.needdisconnect:
+                    self.data.clientexists = 0
+                    self.exit_event.set(True)
+                    self.shutdown()
+                print(self.needdeath)
+                if self.Death_link and self.needdeath:
+                    print("death")
+                    player = self.player_names[self.slot] if self.slot is not None else "Nothing"
+                    y = randint(1,10)
+                    self.needdeath = False
+                    if y == 1:
+                        death_text = player + "tried to have fun"
+                    elif y == 2:
+                        death_text = player + "thought they were playing a real game"
+                    elif y == 3:
+                        death_text = player + "got bored of waiting"
+                    elif y == 4:
+                        death_text = player + "can't sit still"
+                    elif y == 5:
+                        death_text = player + "forgot how to play"
+                    elif y == 6:
+                        death_text = player + "felt that the check was more important"
+                    elif y == 7:
+                        death_text = player + "enjoys the suffering of others"
+                    elif y == 8:
+                        death_text = player + "stopped being afk"
+                    elif y == 9:
+                        death_text = player + "didn't set the mercy high enough"
+                    else:
+                        death_text = player + "did something"
+                    await super().send_death(death_text)
+                    
 
                 if self.checked_locations != self.locations_checked:
                     self.locations_checked = self.checked_locations
@@ -140,11 +179,15 @@ class Nothing_Archipelago_Context(CommonContext):
             self.Death_link = self.slot_data["Death_link"]
             self.Death_link_mercy = self.slot_data["Death_link_mercy"]
             self.Time_dilation = self.slot_data["Time_dilation"]
-
+            
             self.data.update_arch_settings(self.goal, self.shop_upgrades, self.shop_colors, self.shop_music, self.shop_sounds,
                                       self.gift_coins, self.milestone_interval, self.timecap_interval, self.Starting_coin_count,
                                       self.Death_link, self.Death_link_mercy, self.Time_dilation)
             self.highest_processed_item_index = 0
+            print(self.Death_link)
+            if self.Death_link:
+                self.updatedeathlink = True
+            
 
     async def disconnect(self, *args: Any, **kwargs: Any) -> None:
         self.finished_game = False
@@ -166,10 +209,24 @@ class Nothing_Archipelago_Context(CommonContext):
             if isinstance(event, VictoryEvent):
                 continue
 
+            if isinstance(event, DeathEvent):
+                if self.Death_link:
+                    self.needdeath = True
+
+            if isinstance(event, DisconnectEvent):
+                self.needdisconnect = True
+
     def trigger_server(self,server_address, password):
         super().__init__(server_address, password)
 
+    async def on_deathlink_toggle(self):
+        await super().update_death_link(self.Death_link)
 
+    def on_deathlink(self, data):
+        if self.Death_link:
+            self.data.recievedeath = True
+            self.data.deathtext = data.get("cause", "")
+            super().on_deathlink(data)
 
 
 

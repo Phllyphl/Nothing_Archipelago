@@ -1,6 +1,6 @@
 import pygame
 from .buttons import Button
-from .events import LocationClearedEvent
+from .events import LocationClearedEvent, DisconnectEvent
 from random import randint
 
 
@@ -25,6 +25,7 @@ class UI:
         self.force_state_change = 0
         self.milestones_force = 1
         self.peak_time = 0
+        self.total_time = 0
         self.time_cap = 0
         self.time_caps = 1
         self.digit_s = 1
@@ -60,6 +61,7 @@ class UI:
         self.shopbutton8 = Button(self.font, "shop8",80,WINDOW_HEIGHT/4+320,(255,255,255),0)
         self.shopbutton9 = Button(self.font, "shop9",80,WINDOW_HEIGHT/4+360,(255,255,255),0)
         self.shopbutton10 = Button(self.font, "shop10",80,WINDOW_HEIGHT/4+400,(255,255,255),0)
+        self.shopbutton11 = Button(self.font, "shop11",80,WINDOW_HEIGHT/4+400,(255,255,255),0)
         self.continuebutton = Button(self.font, "[CONTINUE]",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+160,(255,255,255),0)
         self.archipelagobutton = Button(self.font, "Archipelago",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+40,(255,255,255),0)
         self.devmodebutton = Button(self.font, "Devmode",WINDOW_WIDTH,WINDOW_HEIGHT,(255,255,255),0)
@@ -160,6 +162,7 @@ class UI:
         self.shopbutton8.updatetl(data.shop[data.shopstate][7][0],40,data.WINDOW_HEIGHT/4+300,data.colors[data.colorselect][1],0)
         self.shopbutton9.updatetl(data.shop[data.shopstate][8][0],40,data.WINDOW_HEIGHT/4+340,data.colors[data.colorselect][1],0)
         self.shopbutton10.updatetl(data.shop[data.shopstate][9][0],40,data.WINDOW_HEIGHT/4+380,data.colors[data.colorselect][1],0)
+        self.shopbutton11.updatetl(data.shop[data.shopstate][10][0],40,data.WINDOW_HEIGHT/4+420,data.colors[data.colorselect][1],0)
 
         self.nextshopbutton.updatec("Next page", 280,data.WINDOW_HEIGHT/4,data.colors[data.colorselect][1],0)
         self.prevshopbutton.updatec("Prev page",100,data.WINDOW_HEIGHT/4,data.colors[data.colorselect][1],0)
@@ -339,7 +342,11 @@ class UI:
             elif data.shopstate == 2 and data.shop[data.shopstate][9][2] == 1:
                     data.musicselect = 9
 
-        for i in range(10):
+        if data.devmode == 1 and data.shopstate == 1:
+            if self.shopbutton11.draw(self.display_surface):
+                data.colorselect = 10
+
+        for i in range(11):
             if data.shopstate == 1 and data.colorselect == i and data.shop[data.shopstate][i][2] == 1:
                 extra = "Selected"
             elif data.shopstate == 2 and data.musicselect == i and data.shop[data.shopstate][i][2] == 1:
@@ -361,13 +368,13 @@ class UI:
             if self.devmodebutton.draw(self.display_surface):
                 if data.devmode == 0:
                     data.devmode = 1
-                    data.timescale = 60
-                    data.points = 60
+                    data.timescaledev = 600
+                    data.points = 72
                     data.devcount = 0
                     data.colorselect = 10
                 elif data.devmode == 1:
                     data.devmode = 0
-                    data.timescale = 1
+                    data.timescaledev = 1
                     data.devcount = 0
                     data.colorselect = 0
     
@@ -405,10 +412,21 @@ class UI:
         text_surf2 = self.font3.render("A Sisyphean Journey",False,data.colors[data.colorselect][1])
         text_rect5 = text_surf2.get_frect(center = (data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2-200))
         self.display_surface.blit(text_surf2, text_rect5)
+        self.StartButton.updatec("Start Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,data.colors[data.colorselect][1],0)
+        self.quitbutton.updatec("Quit Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+80,data.colors[data.colorselect][1],0)
+        self.fullscreenbutton.updatec("Toggle Fullscreen",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
+        if data.archipelagoactive:
+            self.archipelagobutton.updatec("Disconnect Archipelago",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
+        else:
+            self.archipelagobutton.updatec("Archipelago",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
         if self.StartButton.draw(self.display_surface):
             data.playingstate = 1
         if self.archipelagobutton.draw(self.display_surface):
-            data.playingstate = 4
+            if data.archipelagoactive:
+                data.archipelagoactive = 0
+                data.queued_events.append(DisconnectEvent())
+            else:
+                data.playingstate = -1
         if self.quitbutton.draw(self.display_surface):
             data.leave = 1
         if self.fullscreenbutton.draw(self.display_surface):
@@ -572,7 +590,7 @@ class UI:
             text_rect2 = text_surf2.get_frect(center = (data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2-80))
             self.display_surface.blit(text_surf2, text_rect2)
             if self.delta2 >4 :
-                text_surf3 = self.font.render(str(data.goal) +" Seconds",False,data.colors[data.colorselect][1])
+                text_surf3 = self.font.render(str(data.totaltime) +" Seconds",False,data.colors[data.colorselect][1])
                 text_rect3 = text_surf3.get_frect(center = (data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2-40))
                 self.display_surface.blit(text_surf3, text_rect3)
                 if self.delta2 > 6:
@@ -649,6 +667,9 @@ class UI:
     def peaktimer(self,amount):
         self.peak_time = amount
 
+    def totaltimer(self,amount):
+        self.total_time = amount
+
     def pointer(self,amount):
         self.time_points = amount
 
@@ -697,10 +718,10 @@ class UI:
             if data.giftcoins == True:
                  self.display_free_coins(data,dt)
             self.delta += dt
-        elif self.playing_state == 4:
+        elif self.playing_state == -1:
             self.leavearch(data)
             self.delta = 0
-        elif self.playing_state ==5:
+        elif self.playing_state ==-2:
             self.Display_victory(data)
             self.delta2 += dt
         else:
