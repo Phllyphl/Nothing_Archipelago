@@ -25,7 +25,7 @@ class Data:
         self.randoopts[0] = shop_upgrades
         self.randoopts[1] = shop_colors
         self.randoopts[2] = shop_music
-        self.randoopts[3] =shop_sounds
+        self.randoopts[3] = shop_sounds
 
         self.devcount = 0
         self.timescale = Time_dilation
@@ -33,8 +33,13 @@ class Data:
         self.devmode = 0
         self.giftcoins = gift_coins
         self.giftedcoins = Starting_coin_count
+        self.startingcoincount = Starting_coin_count
         self.spentcoins = 0
 
+        self.blocksave = False
+        self.blockload = False
+        self.needload = False
+        self.earnedcoins = 0
         self.ddelay = 0
         self.clientexists = 0
         self.deathtext = ""
@@ -64,6 +69,11 @@ class Data:
         self.checked_locations: set[int] = []
         self.missing_locations: list[int] = []
         
+        #self.names[shop item][shop state]
+        #[x][0] = upgrades
+        #[x][1] = colors
+        #[x][2] = music
+        #[x][3] = colors
         self.names = [[0 for _ in range(4)] for _ in range (11)]
         self.names[0][0] = "Auto-restart      : "
         self.names[1][0] = "Auto-milestone   : "
@@ -109,6 +119,9 @@ class Data:
         self.names[8][3] = "Sound9   : "
         self.names[9][3] = "Sound10 : "
         self.names[10][3] = ""
+        #self.colors[color index][text/background color]
+        #[x][0] = background color
+        #[x][1] = text color
         self.colors =[[0 for _ in range (2)] for _ in range (11)]
         self.colors[0][0] = (100,100,100)
         self.colors[0][1] = (255,255,255)
@@ -132,9 +145,19 @@ class Data:
         self.colors[9][1] = (255,255,255)
         self.colors[10][0] = (0,0,0)
         self.colors[10][1] = (40,200,40)
+        #self.milestones[milestone index][data]
+        #[x][0] = milestone time value
+        #[x][1] = is milestone collected
+        #[x][2] = archipelago location value
         for x in range(86400):
             self._milestones[x][0] = (x+1)*self.milestoneint
             self._milestones[x][2] = x+1
+        #self.shop[shop state][shop item][data]
+        #[x][y][0] = shop item text
+        #[x][y][1] = is shop item purchased
+        #[x][y][2] = is shop item recieved
+        #[x][y][3] = item cost
+        #[x][y][4] = archipelago location balue
         self._shop = [[[0 for _ in range (5)] for _ in range (11)] for _ in range (4)]
         self._shop[1][0][1] = 1
         self._shop[1][0][2] = 1
@@ -166,6 +189,7 @@ class Data:
         self.timescale = Time_dilation
         self.giftcoins = gift_coins
         self.giftedcoins = Starting_coin_count
+        self.startingcoincount = Starting_coin_count
         self.deathlink = Death_link
         self.deathlinkmercy = Death_link_mercy
 

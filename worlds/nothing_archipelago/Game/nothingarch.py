@@ -1,6 +1,8 @@
 import pygame
 from .buttons import Button
-
+import os
+from pathlib import Path
+import json
 
 class archipelagoUI:
     def __init__(self,font,data):
@@ -11,6 +13,13 @@ class archipelagoUI:
         self.slotbutton = Button(self.font,"slot",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,(255,255,255),0)
         self.addressbutton = Button(self.font,"adress",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,(255,255,255),0)
         self.connectbutton = Button(self.font,"connect",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,(255,255,255),0)
+        self.current_dir = Path(__file__).parent.resolve()
+        if ".apworld" in str(self.current_dir):
+            self.current_dir = os.path.join(Path(__file__).parent.parent.parent.parent.parent.resolve(),'nothing_archipelago_saves')
+        else:
+            self.current_dir = os.path.join(Path(__file__).parent.parent.parent.parent.parent.resolve(),'nothing_archipelago_saves')
+        if not os.path.exists(self.current_dir):
+            os.makedirs(self.current_dir)
 
     def connected(self,data):
         if data.connected == 1:
@@ -60,7 +69,6 @@ class archipelagoUI:
                 digitcount +=1
             elif item.item == 4:
                 data.timecaps += 1
-                data.timecap = data.timecaps * data.timecapint
             elif item.item == 5:
                 data.giftedcoins += 1
             elif item.item == 11:
@@ -121,9 +129,11 @@ class archipelagoUI:
                 data.shop[3][8][2] = 1
             elif item.item == 40:
                 data.shop[3][9][2] = 1
-        
+        data.giftedcoins += data.startingcoincount
+        data.timecap = data.timecaps * data.timecapint
         if data.giftedcoins > data.spentcoins:
             data.points += data.giftedcoins - data.spentcoins
+        data.blockload = False
     
     def serverinputs(self,data):
         self.addressbutton.updatec("Address : " + data.inputs[0],data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2-80,data.colors[data.colorselect][1],0)
@@ -142,9 +152,34 @@ class archipelagoUI:
         if self.connectbutton.draw(self.display_surface):
             data.playingstate = 1
             data.archipelagoactive = True
+            serverinfo = {
+                "Address": data.inputs[0],
+                "Port": data.inputs[1],
+                "Slot_Name": data.inputs[2],
+                "Password": data.inputs[3]
+            }
+            with open(os.path.join(self.current_dir,'serverinputs.json'), "w") as f:
+                json.dump(serverinfo, f, indent=4)
+
+    def deleteinputs(self,data):
+        self.addressbutton.updatec("Address : " + data.inputs[0],data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2-80,data.colors[data.colorselect][1],0)
+        self.portbutton.updatec("Port : " + data.inputs[1],data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2-40,data.colors[data.colorselect][1],0)
+        self.slotbutton.updatec("Slot Name : " + data.inputs[2],data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2,data.colors[data.colorselect][1],0)
+        self.passbutton.updatec("Password : " + data.inputs[3],data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
+        if self.addressbutton.draw(self.display_surface):
+            data.activeinput = 0
+        if self.portbutton.draw(self.display_surface):
+            data.activeinput = 1
+        if self.slotbutton.draw(self.display_surface):
+            data.activeinput = 2
+        if self.passbutton.draw(self.display_surface):
+            data.activeinput = 3
+
     
     def update(self,data,dt):
         if data.playingstate == -1:
             self.serverinputs(data)
+        elif data.playingstate == -3:
+            self.deleteinputs(data)
         elif data.playingstate > 0 and data.archipelagoactive == True:
             self.connected(data)

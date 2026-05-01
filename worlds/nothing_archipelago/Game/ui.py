@@ -2,7 +2,9 @@ import pygame
 from .buttons import Button
 from .events import LocationClearedEvent, DisconnectEvent
 from random import randint
-
+import os
+from pathlib import Path
+import json
 
 class UI:
     def __init__(self, font, font2, font3, frames):
@@ -13,7 +15,16 @@ class UI:
 
         self.delta = 0
         self.delta2 = 0
+        self.deltasave = 0
+        self.current_dir = Path(__file__).parent.resolve()
+        if ".apworld" in str(self.current_dir):
+            self.current_dir = os.path.join(Path(__file__).parent.parent.parent.parent.parent.resolve(),'nothing_archipelago_saves')
+        else:
+            self.current_dir = os.path.join(Path(__file__).parent.parent.parent.parent.parent.resolve(),'nothing_archipelago_saves')
+        if not os.path.exists(self.current_dir):
+            os.makedirs(self.current_dir)
         
+
         WINDOW_WIDTH = 1920
         WINDOW_HEIGHT = 1080
         #Timer
@@ -65,7 +76,10 @@ class UI:
         self.continuebutton = Button(self.font, "[CONTINUE]",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+160,(255,255,255),0)
         self.archipelagobutton = Button(self.font, "Archipelago",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+40,(255,255,255),0)
         self.devmodebutton = Button(self.font, "Devmode",WINDOW_WIDTH,WINDOW_HEIGHT,(255,255,255),0)
+        self.deletesavebutton = Button(self.font, "Clear Save Data",0,WINDOW_HEIGHT,(255,255,255),0)
         self.freecoin = Button(self.font, "COIN",0,0,(255,255,255),0)
+        self.deletesingleplayerbutton = Button(self.font, "Clear Save Data",WINDOW_WIDTH*3/4,WINDOW_HEIGHT,(255,255,255),0)
+        self.deletearchipelagobutton = Button(self.font, "Clear Save Data",WINDOW_WIDTH/4,WINDOW_HEIGHT/2+80,(255,255,255),0)
         #max timer
 
 
@@ -415,19 +429,25 @@ class UI:
         self.StartButton.updatec("Start Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,data.colors[data.colorselect][1],0)
         self.quitbutton.updatec("Quit Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+80,data.colors[data.colorselect][1],0)
         self.fullscreenbutton.updatec("Toggle Fullscreen",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
+        self.deletesavebutton.updatetl("Clear Save Data",20,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
         if data.archipelagoactive:
             self.archipelagobutton.updatec("Disconnect Archipelago",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
         else:
             self.archipelagobutton.updatec("Archipelago",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
         if self.StartButton.draw(self.display_surface):
             data.playingstate = 1
+            self.loaddata(data)
         if self.archipelagobutton.draw(self.display_surface):
             if data.archipelagoactive:
+                self.savedata(data)
                 data.archipelagoactive = 0
                 data.queued_events.append(DisconnectEvent())
             else:
                 data.playingstate = -1
+        if self.deletesavebutton.draw(self.display_surface):
+            data.playingstate = -3
         if self.quitbutton.draw(self.display_surface):
+            self.savedata(data)
             data.leave = 1
         if self.fullscreenbutton.draw(self.display_surface):
             pygame.display.toggle_fullscreen()
@@ -437,6 +457,7 @@ class UI:
         text_rect8 = text_surf8.get_frect(topright = (data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4-20))
         self.display_surface.blit(text_surf8, text_rect8)
         if self.backbutton.draw(self.display_surface):
+            self.savedata(data)
             data.playingstate = 0
             self.playing_state = 0
         if data.shop[0][1][2] == 1 and self.max_time > self.milestone1button.value and self.delta > 0.5:
@@ -654,9 +675,129 @@ class UI:
             self.delta3 += dt
             if self.freecoin.draw(self.display_surface):
                 data.points += 1
+                data.earnedcoins += 1
                 self.coin_spawned = 0
                 self.delta3 = 0
 
+    def delete_singleplayer_save(self,data):
+        if os.path.exists(os.path.join(self.current_dir,'singleplayer.json')):
+            os.remove(os.path.join(self.current_dir,'singleplayer.json'))
+
+    def delete_archipelago_save(self,data):
+        if os.path.exists(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json')):
+            os.remove(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json'))
+
+    def savedata(self,data):
+        if data.archipelagoactive:
+            if not os.path.exists(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]))):
+                os.makedirs(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2])))
+            savedata = {
+                "earnedcoins": data.earnedcoins,
+                "totaltime": data.totaltime,
+                "colorselect": data.colorselect,
+                "musicselect": data.currentsong,
+                "maxtime": data.maxtime
+            }
+            with open(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json'), "w") as f:
+                json.dump(savedata, f, indent=4)
+        else:
+            savedata = {
+                "earnedcoins": data.earnedcoins,
+                "totaltime": data.totaltime,
+                "colorselect": data.colorselect,
+                "musicselect": data.currentsong,
+                "milestones": data.milestones,
+                "shop": data.shop,
+                "maxtime": data.maxtime,
+                "spentcoins": data.spentcoins
+            }
+            with open(os.path.join(self.current_dir,'singleplayer.json'), "w") as f:
+                json.dump(savedata, f, indent=4)
+
+    def loaddata(self,data):
+        try:
+            if data.archipelagoactive:
+                with open(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json'), "r") as f:
+                    archipelagodata = json.load(f)
+                data.earnedcoins = archipelagodata["earnedcoins"]
+                data.totaltime = archipelagodata["totaltime"]
+                data.colorselect = archipelagodata["colorselect"]
+                data.musicselect = archipelagodata["musicselect"]
+                data.maxtime = archipelagodata["maxtime"]
+                spentcoins = 0
+                for x in range (4):
+                    for y in range (10):
+                        if data.shop[x][y][2] == 1:
+                            spentcoins += data.shop[x][y][3]
+                data.points = data.earnedcoins + data.giftedcoins - spentcoins
+                data.spentcoins = spentcoins
+            else:
+                with open(os.path.join(self.current_dir,'singleplayer.json'), "r") as f:
+                    singleplayerdata = json.load(f)
+                data.earnedcoins = singleplayerdata["earnedcoins"]
+                data.totaltime = singleplayerdata["totaltime"]
+                data.colorselect = singleplayerdata["colorselect"]
+                data.musicselect = singleplayerdata["musicselect"]
+                data.maxtime = singleplayerdata["maxtime"]
+                data.timecaps = 1
+                for x in range (86400):
+                    for y in range(4):
+                        data.milestones[x][y] = singleplayerdata["milestones"][x][y]
+                        if y == 1:
+                            data.timecaps += data.milestones[x][y]
+                data.timecap = data.timecaps * data.timecapint
+                for x in range (4):
+                    for y in range (11):
+                        for z in range (5):
+                            data.shop[x][y][z] = singleplayerdata["shop"][x][y][z]
+                data.spentcoins = singleplayerdata["spentcoins"]
+                spentcoins = 0
+                for x in range (4):
+                    for y in range (10):
+                        if data.shop[x][y][2] == 1:
+                            spentcoins += data.shop[x][y][3]
+                data.points = data.earnedcoins - spentcoins
+                if data.spentcoins != spentcoins:
+                    print("save data is self inconsistent")
+                    data.spentcoins = spentcoins
+            if data.devmode == 1:
+                if data.earnedcoins <= 72:
+                    data.earnedcoins = 72
+                    data.points = data.earnedcoins - spentcoins
+                data.colorselect = 10
+
+        except FileNotFoundError:
+            return None
+
+    def loadserverdata(self,data):
+        try:
+            with open(os.path.join(self.current_dir,'serverinputs.json'), "r") as f:
+                serverinfo = json.load(f)
+            data.inputs[0] = serverinfo["Address"]
+            data.inputs[1] = serverinfo["Port"]
+            data.inputs[2] = serverinfo["Slot_Name"]
+            data.inputs[3] = serverinfo["Password"]
+        except FileNotFoundError:
+            return None
+    
+    def saveserverdata(self,data):
+        serverinfo = {
+                "Address": data.inputs[0],
+                "Port": data.inputs[1],
+                "Slot_Name": data.inputs[2],
+                "Password": data.inputs[3]
+            }
+        with open(os.path.join(self.current_dir,'serverinputs.json'), "w") as f:
+            json.dump(serverinfo, f, indent=4)
+
+    def Display_delete_control(self,data):
+        self.deletesingleplayerbutton.updatec("Clear Singleplayer Save Data",data.WINDOW_WIDTH*2/6,data.WINDOW_HEIGHT/2,data.colors[data.colorselect][1],0)
+        self.deletearchipelagobutton.updatec("Clear Archipelago Save Data",data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2+80,data.colors[data.colorselect][1],0)
+        if self.deletesingleplayerbutton.draw(self.display_surface):
+            self.delete_singleplayer_save(data)
+        if self.deletearchipelagobutton.draw(self.display_surface):
+            self.saveserverdata(data)
+            self.delete_archipelago_save(data)
 
     def timer(self,amount):
         self.current_time = amount
@@ -708,6 +849,10 @@ class UI:
 
     def update(self, data, dt):
         if self.playing_state > 0 and self.playing_state < 4:
+            if data.needload and not data.blockload:
+                self.loaddata(data)
+            if self.deltasave > 60 and not data.blocksave:
+                self.savedata(data)
             self.display_timer(data)
             self.display_maxtimer(data)
             self.display_pointer(data)
@@ -724,6 +869,9 @@ class UI:
         elif self.playing_state ==-2:
             self.Display_victory(data)
             self.delta2 += dt
+        elif self.playing_state == -3:
+            self.leavearch(data)
+            self.Display_delete_control(data)
         else:
             self.display_devbutton(data)
             self.display_startmenu(data)

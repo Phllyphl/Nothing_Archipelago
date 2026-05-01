@@ -59,7 +59,7 @@ class Level:
         if self.delta > 0.7:
             if self.data.playingstate == 2:
                 self.data.deathlinkcount += 1
-                print(self.data.deathlinkcount)
+                #print(self.data.deathlinkcount)
         if self.data.deathlinkcount >= self.data.deathlinkmercy:
             self.data.deathlinkcount = 0
             self.data.queued_events.append(DeathEvent())
@@ -83,15 +83,19 @@ class Level:
         self.data.forcestatechange = 0
 
     def checkgoal(self):
+        if self.data.goalled and self.data.blocksave == False:
+            self.data.blocksave = True        
         if self.data.maxtime >= self.data.goal and self.data.goalled == False:
             self.data.totaltime += self.data.currenttime
             self.data.playingstate = -2
             self.data.goalled = True
+            self.data.blocksave = True
             self.data.queued_events.append(VictoryEvent())
         
     def getpoints(self):
         if self.data.points < int(self.data.currenttime/600):
             self.data.points += 1
+            self.data.earnedcoins += 1
         
     def checkdigits(self):
         y = 1

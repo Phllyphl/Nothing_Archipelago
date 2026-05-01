@@ -17,6 +17,7 @@ class Game:
         pygame.init()
         self.display_surface = pygame.display.set_mode((1920, 1080),pygame.SCALED | pygame.FULLSCREEN)
         self.current_dir = Path(__file__).parent.resolve()
+        print(self.current_dir)
         if ".apworld" in str(self.current_dir):
             import zipfile
             self.current_dir = Path(__file__).parent.parent.parent.resolve()
@@ -31,7 +32,7 @@ class Game:
         self.data = Data(self.ui, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins,
                           milestone_interval, timecap_interval, Starting_coin_count, Death_link, Death_link_mercy, Time_dilation)
         pygame.display.set_caption('nothing_archipelago')
-        
+        self.ui.loadserverdata(self.data)
         self.clock = pygame.time.Clock()
         
         self.archui = archipelagoUI(self.font,self.data)
@@ -297,9 +298,10 @@ class Game:
             pygame.mixer.music.play(-1)
 
 
-        
-    #make sure games asyntask actually closes
-    #add the ability to save make time
+    
+    #make sure the save function actually works
+    #add trivial pursuit
+    #find another joke to add
     #make test cases for client
 
     async def run(self):
