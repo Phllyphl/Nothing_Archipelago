@@ -12,10 +12,11 @@ class UI:
         self.font = font
         self.font2 = font2
         self.font3 = font3
-
+        self.speed_ups = 0
         self.delta = 0
         self.delta2 = 0
         self.deltasave = 0
+        self.inputdelta = 0
         self.current_dir = Path(__file__).parent.resolve()
         if ".apworld" in str(self.current_dir):
             self.current_dir = os.path.join(Path(__file__).parent.parent.parent.parent.parent.resolve(),'nothing_archipelago_saves')
@@ -32,7 +33,6 @@ class UI:
         self.max_time = 0
         self.time_points = 0
         self.playing_state = 0
-        self.playing_state
         self.force_state_change = 0
         self.milestones_force = 1
         self.peak_time = 0
@@ -49,7 +49,6 @@ class UI:
         self.delta3 = 0
         self.shops = [[[0 for _ in range (4)] for _ in range (10)] for _ in range (4)]
         self.sound_s = [0 for _ in range(10)]
-        self.gear_surf = frames['gear']
         self.mile_stones = [[0 for _ in range (4)] for _ in range (86400)]
         self.StartButton = Button(self.font,"Start Doing Nothing",WINDOW_WIDTH/2,WINDOW_HEIGHT/2,(255,255,255),0)
         self.quitbutton = Button(self.font,"Quit Doing Nothing",WINDOW_WIDTH/2,WINDOW_HEIGHT/2+80,(255,255,255),0)
@@ -146,7 +145,7 @@ class UI:
         text_rect5 = text_surf5.get_frect(center = (data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT-40))
         self.display_surface.blit(text_surf5, text_rect5)
 
-    def display_shop(self,data):
+    def display_shop(self,data,dt):
         text_surf4 = self.font.render("Shop",False,data.colors[data.colorselect][1])
         text_rect4 = text_surf4.get_frect(center = (200,data.WINDOW_HEIGHT/4-40))
         self.display_surface.blit(text_surf4, text_rect4)
@@ -187,178 +186,206 @@ class UI:
         self.fullscreenbutton.updatec("Toggle Fullscreen",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
 
         if self.shopbutton1.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][0][3] and data.shop[data.shopstate][0][1] == 0:
-                data.points -= data.shop[data.shopstate][0][3]
-                data.spentcoins += data.shop[data.shopstate][0][3]
-                data.shop[data.shopstate][0][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][0][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][0][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][0][4]))
-                    if data.shop[data.shopstate][0][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][0][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][0][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][0][3] and data.shop[data.shopstate][0][1] == 0:
+                    data.points -= data.shop[data.shopstate][0][3]
+                    data.spentcoins += data.shop[data.shopstate][0][3]
+                    data.shop[data.shopstate][0][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][0][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][0][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][0][4]))
+                        if data.shop[data.shopstate][0][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][0][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][0][2] == 1:
                     data.colorselect = 0
-            elif data.shopstate == 2 and data.shop[data.shopstate][0][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][0][2] == 1:
                     data.musicselect = 0
+                self.inputdelta = 0
 
         if self.shopbutton2.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][1][3] and data.shop[data.shopstate][1][1] == 0:
-                data.points -= data.shop[data.shopstate][1][3]
-                data.spentcoins += data.shop[data.shopstate][1][3]
-                data.shop[data.shopstate][1][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][1][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][1][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][1][4]))
-                    if data.shop[data.shopstate][1][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][1][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][1][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][1][3] and data.shop[data.shopstate][1][1] == 0:
+                    data.points -= data.shop[data.shopstate][1][3]
+                    data.spentcoins += data.shop[data.shopstate][1][3]
+                    data.shop[data.shopstate][1][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][1][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][1][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][1][4]))
+                        if data.shop[data.shopstate][1][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][1][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][1][2] == 1:
                     data.colorselect = 1
-            elif data.shopstate == 2 and data.shop[data.shopstate][1][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][1][2] == 1:
                     data.musicselect = 1
+                self.inputdelta = 0
         
         if self.shopbutton3.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][2][3] and data.shop[data.shopstate][2][1] == 0:
-                data.points -= data.shop[data.shopstate][2][3]
-                data.spentcoins += data.shop[data.shopstate][2][3]
-                data.shop[data.shopstate][2][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate]  == False:
-                    data.shop[data.shopstate][2][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][2][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][2][4]))
-                    if data.shop[data.shopstate][2][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][2][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][2][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][2][3] and data.shop[data.shopstate][2][1] == 0:
+                    data.points -= data.shop[data.shopstate][2][3]
+                    data.spentcoins += data.shop[data.shopstate][2][3]
+                    data.shop[data.shopstate][2][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate]  == False:
+                        data.shop[data.shopstate][2][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][2][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][2][4]))
+                        if data.shop[data.shopstate][2][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][2][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][2][2] == 1:
                     data.colorselect = 2
-            elif data.shopstate == 2 and data.shop[data.shopstate][2][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][2][2] == 1:
                     data.musicselect = 2
+                self.inputdelta = 0
 
         if self.shopbutton4.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][3][3] and data.shop[data.shopstate][3][1] == 0:
-                data.points -= data.shop[data.shopstate][3][3]
-                data.spentcoins += data.shop[data.shopstate][3][3]
-                data.shop[data.shopstate][3][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][3][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][3][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][3][4]))
-                    if data.shop[data.shopstate][3][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][3][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][3][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][3][3] and data.shop[data.shopstate][3][1] == 0:
+                    data.points -= data.shop[data.shopstate][3][3]
+                    data.spentcoins += data.shop[data.shopstate][3][3]
+                    data.shop[data.shopstate][3][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][3][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][3][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][3][4]))
+                        if data.shop[data.shopstate][3][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][3][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][3][2] == 1:
                     data.colorselect = 3
-            elif data.shopstate == 2 and data.shop[data.shopstate][3][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][3][2] == 1:
                     data.musicselect = 3
+                self.inputdelta = 0
 
         if self.shopbutton5.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][4][3] and data.shop[data.shopstate][4][1] == 0:
-                data.points -= data.shop[data.shopstate][4][3]
-                data.spentcoins += data.shop[data.shopstate][4][3]
-                data.shop[data.shopstate][4][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][4][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][4][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][4][4]))
-                    if data.shop[data.shopstate][4][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][4][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][4][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][4][3] and data.shop[data.shopstate][4][1] == 0:
+                    data.points -= data.shop[data.shopstate][4][3]
+                    data.spentcoins += data.shop[data.shopstate][4][3]
+                    data.shop[data.shopstate][4][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][4][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][4][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][4][4]))
+                        if data.shop[data.shopstate][4][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][4][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][4][2] == 1:
                     data.colorselect = 4
-            elif data.shopstate == 2 and data.shop[data.shopstate][4][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][4][2] == 1:
                     data.musicselect = 4
+                self.inputdelta = 0
 
         if self.shopbutton6.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][5][3] and data.shop[data.shopstate][5][1] == 0:
-                data.points -= data.shop[data.shopstate][5][3]
-                data.spentcoins += data.shop[data.shopstate][5][3]
-                data.shop[data.shopstate][5][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][5][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][5][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][5][4]))
-                    if data.shop[data.shopstate][5][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][5][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][5][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][5][3] and data.shop[data.shopstate][5][1] == 0:
+                    data.points -= data.shop[data.shopstate][5][3]
+                    data.spentcoins += data.shop[data.shopstate][5][3]
+                    data.shop[data.shopstate][5][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][5][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][5][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][5][4]))
+                        if data.shop[data.shopstate][5][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][5][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][5][2] == 1:
                     data.colorselect = 5
-            elif data.shopstate == 2 and data.shop[data.shopstate][5][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][5][2] == 1:
                     data.musicselect = 5
+                self.inputdelta = 0
 
         if self.shopbutton7.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][6][3] and data.shop[data.shopstate][6][1] == 0:
-                data.points -= data.shop[data.shopstate][6][3]
-                data.spentcoins += data.shop[data.shopstate][6][3]
-                data.shop[data.shopstate][6][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][6][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][6][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][6][4]))
-                    if data.shop[data.shopstate][6][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][6][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][6][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][6][3] and data.shop[data.shopstate][6][1] == 0:
+                    data.points -= data.shop[data.shopstate][6][3]
+                    data.spentcoins += data.shop[data.shopstate][6][3]
+                    data.shop[data.shopstate][6][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][6][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][6][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][6][4]))
+                        if data.shop[data.shopstate][6][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][6][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][6][2] == 1:
                     data.colorselect = 6
-            elif data.shopstate == 2 and data.shop[data.shopstate][6][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][6][2] == 1:
                     data.musicselect = 6
+                self.inputdelta = 0
 
         if self.shopbutton8.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][7][3] and data.shop[data.shopstate][7][1] == 0:
-                data.points -= data.shop[data.shopstate][7][3]
-                data.spentcoins += data.shop[data.shopstate][7][3]
-                data.shop[data.shopstate][7][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][7][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][7][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][7][4]))
-                    if data.shop[data.shopstate][7][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][7][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][7][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][7][3] and data.shop[data.shopstate][7][1] == 0:
+                    data.points -= data.shop[data.shopstate][7][3]
+                    data.spentcoins += data.shop[data.shopstate][7][3]
+                    data.shop[data.shopstate][7][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][7][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][7][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][7][4]))
+                        if data.shop[data.shopstate][7][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][7][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][7][2] == 1:
                     data.colorselect = 7
-            elif data.shopstate == 2 and data.shop[data.shopstate][7][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][7][2] == 1:
                     data.musicselect = 7
+                self.inputdelta = 0
 
         if self.shopbutton9.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][8][3] and data.shop[data.shopstate][8][1] == 0:
-                data.points -= data.shop[data.shopstate][8][3]
-                data.spentcoins += data.shop[data.shopstate][8][3]
-                data.shop[data.shopstate][8][1] = 1
-                if data.archipelagoactive == False  or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][8][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][8][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][8][4]))
-                    if data.shop[data.shopstate][8][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][8][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][8][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][8][3] and data.shop[data.shopstate][8][1] == 0:
+                    data.points -= data.shop[data.shopstate][8][3]
+                    data.spentcoins += data.shop[data.shopstate][8][3]
+                    data.shop[data.shopstate][8][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][8][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][8][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][8][4]))
+                        if data.shop[data.shopstate][8][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][8][4])
+                elif data.shopstate == 0 and data.shop[data.shopstate][8][2] == 1:
+                    data.playingstate = -4
+                    self.playing_state = -4
+                    self.delta = 0
+                    self.delta2 = 0
+                    self.delta3 = 0
+                elif data.shopstate == 1 and data.shop[data.shopstate][8][2] == 1:
                     data.colorselect = 8
-            elif data.shopstate == 2 and data.shop[data.shopstate][8][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][8][2] == 1:
                     data.musicselect = 8
+                self.inputdelta = 0
 
         if self.shopbutton10.draw(self.display_surface):
-            if data.points >= data.shop[data.shopstate][9][3] and data.shop[data.shopstate][9][1] == 0:
-                data.points -= data.shop[data.shopstate][9][3]
-                data.spentcoins += data.shop[data.shopstate][9][3]
-                data.shop[data.shopstate][9][1] = 1
-                if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
-                    data.shop[data.shopstate][9][2] = 1
-                else:
-                    data.checked_locations_player.add(data.shop[data.shopstate][9][4])
-                    data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][9][4]))
-                    if data.shop[data.shopstate][9][4] in data.missing_locations:
-                        data.missing_locations.remove(data.shop[data.shopstate][9][4])
-            elif data.shopstate == 1 and data.shop[data.shopstate][9][2] == 1:
+            if self.inputdelta > 0.25:
+                if data.points >= data.shop[data.shopstate][9][3] and data.shop[data.shopstate][9][1] == 0:
+                    data.points -= data.shop[data.shopstate][9][3]
+                    data.spentcoins += data.shop[data.shopstate][9][3]
+                    data.shop[data.shopstate][9][1] = 1
+                    if data.archipelagoactive == False or data.randoopts[data.shopstate] == False:
+                        data.shop[data.shopstate][9][2] = 1
+                    else:
+                        data.checked_locations_player.add(data.shop[data.shopstate][9][4])
+                        data.queued_events.append(LocationClearedEvent(data.shop[data.shopstate][9][4]))
+                        if data.shop[data.shopstate][9][4] in data.missing_locations:
+                            data.missing_locations.remove(data.shop[data.shopstate][9][4])
+                elif data.shopstate == 1 and data.shop[data.shopstate][9][2] == 1:
                     data.colorselect = 9
-            elif data.shopstate == 2 and data.shop[data.shopstate][9][2] == 1:
+                elif data.shopstate == 2 and data.shop[data.shopstate][9][2] == 1:
                     data.musicselect = 9
+                self.inputdelta = 0
 
         if data.devmode == 1 and data.shopstate == 1:
             if self.shopbutton11.draw(self.display_surface):
-                data.colorselect = 10
+                if self.inputdelta > 0.25:
+                    data.colorselect = 10
+                    self.inputdelta = 0
 
         for i in range(11):
             if data.shopstate == 1 and data.colorselect == i and data.shop[data.shopstate][i][2] == 1:
@@ -366,7 +393,10 @@ class UI:
             elif data.shopstate == 2 and data.musicselect == i and data.shop[data.shopstate][i][2] == 1:
                 extra = "Selected"
             elif (data.shopstate == 0 or data.shopstate == 3) and data.shop[data.shopstate][i][1] == 1:
-                data.names[i][data.shopstate] = "SOLD OUT"
+                if i == 8 and data.shop[data.shopstate][i][2] == 1:
+                    data.names[8][0] = "Play Trivial Pursuit"
+                else:
+                    data.names[i][data.shopstate] = "SOLD OUT"
                 extra = ""
             elif data.shop[data.shopstate][i][1] == 1 and data.shop[data.shopstate][i][2] == 0:
                 extra = ""
@@ -375,6 +405,7 @@ class UI:
             elif data.shop[data.shopstate][i][1] == 0:
                 extra = data.shop[data.shopstate][i][3]
             data.shop[data.shopstate][i][0] = data.names[i][data.shopstate] + str(extra)
+        self.inputdelta += dt
 
     def display_devbutton(self,data):
         self.devmodebutton.updatetl("Devmode", data.WINDOW_WIDTH-240,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)    
@@ -429,7 +460,7 @@ class UI:
         self.StartButton.updatec("Start Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2,data.colors[data.colorselect][1],0)
         self.quitbutton.updatec("Quit Doing Nothing",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+80,data.colors[data.colorselect][1],0)
         self.fullscreenbutton.updatec("Toggle Fullscreen",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
-        self.deletesavebutton.updatetl("Clear Save Data",20,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
+        self.deletesavebutton.updatetl("Clear Save Data",20,data.WINDOW_HEIGHT-80,data.colors[data.colorselect][1],0)
         if data.archipelagoactive:
             self.archipelagobutton.updatec("Disconnect Archipelago",data.WINDOW_WIDTH/2,data.WINDOW_HEIGHT/2+40,data.colors[data.colorselect][1],0)
         else:
@@ -457,10 +488,12 @@ class UI:
         text_rect8 = text_surf8.get_frect(topright = (data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4-20))
         self.display_surface.blit(text_surf8, text_rect8)
         if self.backbutton.draw(self.display_surface):
-            self.savedata(data)
-            data.playingstate = 0
-            self.playing_state = 0
-        if data.shop[0][1][2] == 1 and self.max_time > self.milestone1button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                self.savedata(data)
+                data.playingstate = 0
+                self.playing_state = 0
+                self.inputdelta = 0
+        if data.shop[0][1][2] == 1 and self.max_time >= self.milestone1button.value and self.delta > 0.25:
             test = int(self.milestone1button.value/data.milestoneint)-1
             data.milestones[test][1] = 1
             data.milestones[test][0] = 0
@@ -530,76 +563,86 @@ class UI:
                         self.milestone4button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+140,data.colors[data.colorselect][1],1)
                         self.milestone5button.finished("Milestone Completed",data.WINDOW_WIDTH,data.WINDOW_HEIGHT/4+180,data.colors[data.colorselect][1],1)
                     i+=1
-        if self.milestone1button.draw(self.display_surface) and self.max_time > self.milestone1button.value and self.delta > 0.5:
-            test = int(self.milestone1button.value/data.milestoneint)-1
-            data.milestones[test][1] = 1
-            data.milestones[test][0] = 0
-            if data.archipelagoactive == False:
-                data.timecaps += 1
-            else:
-                data.checked_locations_player.add(data.milestones[test][2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
-                if data.milestones[test][2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test][2])
-            data.timecap = data.timecaps * data.timecapint
-            self.milestone1button.value = 0
-            self.delta = 0
-        if self.milestone2button.draw(self.display_surface) and self.max_time > self.milestone2button.value and self.delta > 0.5:
-            test = int(self.milestone2button.value/data.milestoneint)-1
-            data.milestones[test][1] = 1
-            data.milestones[test][0] = 0
-            if data.archipelagoactive == False:
-                data.timecaps += 1
-            else:
-                data.checked_locations_player.add(data.milestones[test][2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
-                if data.milestones[test][2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test][2])
-            data.timecap = data.timecaps * data.timecapint
-            self.milestone2button.value = 0
-            self.delta = 0
-        if self.milestone3button.draw(self.display_surface) and self.max_time > self.milestone3button.value and self.delta > 0.5:
-            test = int(self.milestone3button.value/data.milestoneint)-1
-            data.milestones[test][1] = 1
-            data.milestones[test][0] = 0
-            if data.archipelagoactive == False:
-                data.timecaps += 1
-            else:
-                data.checked_locations_player.add(data.milestones[test][2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
-                if data.milestones[test][2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test][2])
-            data.timecap = data.timecaps * data.timecapint
-            self.milestone3button.value = 0
-            self.delta = 0
-        if self.milestone4button.draw(self.display_surface) and self.max_time > self.milestone4button.value and self.delta > 0.5:
-            test = int(self.milestone4button.value/data.milestoneint)-1
-            data.milestones[test][1] = 1
-            data.milestones[test][0] = 0
-            if data.archipelagoactive == False:
-                data.timecaps += 1
-            else:
-                data.checked_locations_player.add(data.milestones[test][2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
-                if data.milestones[test][2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test][2])
-            data.timecap = data.timecaps * data.timecapint
-            self.milestone4button.value = 0
-            self.delta = 0
-        if self.milestone5button.draw(self.display_surface) and self.max_time > self.milestone5button.value and self.delta > 0.5:
-            test = int(self.milestone5button.value/data.milestoneint)-1
-            data.milestones[test][1] = 1
-            data.milestones[test][0] = 0
-            if data.archipelagoactive == False:
-                data.timecaps += 1
-            else:
-                data.checked_locations_player.add(data.milestones[test][2])
-                data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
-                if data.milestones[test][2] in data.missing_locations:
-                        data.missing_locations.remove(data.milestones[test][2])
-            data.timecap = data.timecaps * data.timecapint
-            self.milestone5button.value = 0
-            self.delta = 0
+        if self.milestone1button.draw(self.display_surface) and self.max_time >= self.milestone1button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                test = int(self.milestone1button.value/data.milestoneint)-1
+                data.milestones[test][1] = 1
+                data.milestones[test][0] = 0
+                if data.archipelagoactive == False:
+                    data.timecaps += 1
+                else:
+                    data.checked_locations_player.add(data.milestones[test][2])
+                    data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                    if data.milestones[test][2] in data.missing_locations:
+                            data.missing_locations.remove(data.milestones[test][2])
+                data.timecap = data.timecaps * data.timecapint
+                self.milestone1button.value = 0
+                self.delta = 0
+                self.inputdelta = 0
+        if self.milestone2button.draw(self.display_surface) and self.max_time >= self.milestone2button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                test = int(self.milestone2button.value/data.milestoneint)-1
+                data.milestones[test][1] = 1
+                data.milestones[test][0] = 0
+                if data.archipelagoactive == False:
+                    data.timecaps += 1
+                else:
+                    data.checked_locations_player.add(data.milestones[test][2])
+                    data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                    if data.milestones[test][2] in data.missing_locations:
+                            data.missing_locations.remove(data.milestones[test][2])
+                data.timecap = data.timecaps * data.timecapint
+                self.milestone2button.value = 0
+                self.delta = 0
+                self.inputdelta = 0
+        if self.milestone3button.draw(self.display_surface) and self.max_time >= self.milestone3button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                test = int(self.milestone3button.value/data.milestoneint)-1
+                data.milestones[test][1] = 1
+                data.milestones[test][0] = 0
+                if data.archipelagoactive == False:
+                    data.timecaps += 1
+                else:
+                    data.checked_locations_player.add(data.milestones[test][2])
+                    data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                    if data.milestones[test][2] in data.missing_locations:
+                            data.missing_locations.remove(data.milestones[test][2])
+                data.timecap = data.timecaps * data.timecapint
+                self.milestone3button.value = 0
+                self.delta = 0
+                self.inputdelta = 0
+        if self.milestone4button.draw(self.display_surface) and self.max_time >= self.milestone4button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                test = int(self.milestone4button.value/data.milestoneint)-1
+                data.milestones[test][1] = 1
+                data.milestones[test][0] = 0
+                if data.archipelagoactive == False:
+                    data.timecaps += 1
+                else:
+                    data.checked_locations_player.add(data.milestones[test][2])
+                    data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                    if data.milestones[test][2] in data.missing_locations:
+                            data.missing_locations.remove(data.milestones[test][2])
+                data.timecap = data.timecaps * data.timecapint
+                self.milestone4button.value = 0
+                self.delta = 0
+                self.inputdelta = 0
+        if self.milestone5button.draw(self.display_surface) and self.max_time >= self.milestone5button.value and self.delta > 0.5:
+            if self.inputdelta >= 0.25:
+                test = int(self.milestone5button.value/data.milestoneint)-1
+                data.milestones[test][1] = 1
+                data.milestones[test][0] = 0
+                if data.archipelagoactive == False:
+                    data.timecaps += 1
+                else:
+                    data.checked_locations_player.add(data.milestones[test][2])
+                    data.queued_events.append(LocationClearedEvent(data.milestones[test][2]))
+                    if data.milestones[test][2] in data.missing_locations:
+                            data.missing_locations.remove(data.milestones[test][2])
+                data.timecap = data.timecaps * data.timecapint
+                self.milestone5button.value = 0
+                self.delta = 0
+                self.inputdelta = 0
 
 
     def Display_victory(self,data):
@@ -637,11 +680,14 @@ class UI:
                                         self.delta2 = 0
                                         self.delta = 0
 
-    def leavearch(self,data):
+    def leavearch(self,data,dt):
         self.backbutton.updatec("Return to Menu",data.WINDOW_WIDTH-160,data.WINDOW_HEIGHT-40,data.colors[data.colorselect][1],0)
         if self.backbutton.draw(self.display_surface):
-            data.playingstate = 0
-            self.playing_state = 0
+            if self.inputdelta >= 0.25:
+                data.playingstate = 0
+                self.playing_state = 0
+                self.inputdelta = 0
+        self.inputdelta += dt
 
     def display_free_coins(self,data,dt):
         y = randint(1,5000)
@@ -682,10 +728,164 @@ class UI:
     def delete_singleplayer_save(self,data):
         if os.path.exists(os.path.join(self.current_dir,'singleplayer.json')):
             os.remove(os.path.join(self.current_dir,'singleplayer.json'))
+            data.earnedcoins = 0
+            data.totaltime = 0
+            data.colorselect = 0
+            data.currentsong = 11
+            data.speedups = 0
+            data.spentcoins = 0
+            data.trivia_selected_team = False
+            data.trivia_team = 0
+            data.trivia_question = 0
+            data.trivia_color = 0
+            data.trivia_shown_color = 0
+            data.trivia_location = 0
+            data.trivia_last_direction = 0
+            data.trivia_roll = 0
+            data.trivia_moves = 0
+            data.trivia_goal = False
+            data.trivia_intro = False
+            data.trivia_last_location = 0
+            data.trivia_move = False
+            data.trivia_need_direction = True
+            data.trivia_need_question = False
+            data.trivia_last_question = False
+            data.trivia_question_charge = True
+            data.trivia_used_blue = False
+            data.trivia_used_green = False
+            data.trivia_enabled = True
+            data.trivia_penalty = 0
+            data.trivia_state = 0
+            data.milestoneint = 1
+            data.goal = 86400
+            data.points = 4
+            data.timecapint = 1
+            data.randoopts = [False for _ in range (4)]
+            data.enabletrivialpursuit = False
+            data.enabletriviaquestion = False
+            data.timescale = 1
+            data.timescaledev = 1
+            data.giftcoins = True
+            data.giftedcoins = 0
+            data.startingcoincount = 0
+            data.ddelay = 0
+            data.deathlink = False
+            data.deathlinkcount = 0
+            data.deathlinkmercy = 0
+            data.currenttime = 0
+            data.shopstate = 0
+            data.peaktime = 0
+            data.timecaps = 1
+            data.timecap = data.timecapint
+            data.digits = 1
+            data.goalled = False
+            data.trivia_wedges = [[0 for _ in range(3)] for _ in range(6)]
+            for x in range (6):
+                data.trivia_wedges[x][0] = 0
+                data.trivia_wedges[x][1] = 86441 + x
+                data.trivia_wedges[x][2] = True
+            for x in range (300):
+                for y in range(6):
+                    data.answered_questions[x][y][0] = 0
+                    data.answered_questions[x][y][1] = 87000 + x + (y * 300)
+            for x in range (4):
+                for y in range (10):
+                    if x == 0 and y > 1:
+                        data.shop[x][y][3] = 1
+                    else:
+                        data.shop[x][y][3] = 2
+                    data.shop[x][y][0] = 0
+                    data.shop[x][y][1] = 0
+                    data.shop[x][y][2] = 0
+                    data.shop[x][y][4] = 86400+(x*10)+(y+1)
+            data.shop[1][0][1] = 1
+            data.shop[1][0][2] = 1
+            data.shop[0][9][3] = ""
+            
+            for x in range(86400):
+                data.milestones[x][0] = (x+1)*data.milestoneint
+                data.milestones[x][2] = x+1
+
 
     def delete_archipelago_save(self,data):
         if os.path.exists(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json')):
             os.remove(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json'))
+            data.earnedcoins = 0
+            data.totaltime = 0
+            data.colorselect = 0
+            data.currentsong = 11
+            data.speedups = 0
+            data.spentcoins = 0
+            data.trivia_selected_team = False
+            data.trivia_team = 0
+            data.trivia_question = 0
+            data.trivia_color = 0
+            data.trivia_shown_color = 0
+            data.trivia_location = 0
+            data.trivia_last_direction = 0
+            data.trivia_roll = 0
+            data.trivia_moves = 0
+            data.trivia_goal = False
+            data.trivia_intro = False
+            data.trivia_last_location = 0
+            data.trivia_move = False
+            data.trivia_need_direction = True
+            data.trivia_need_question = False
+            data.trivia_last_question = False
+            data.trivia_question_charge = True
+            data.trivia_used_blue = False
+            data.trivia_used_green = False
+            data.trivia_enabled = True
+            data.trivia_penalty = 0
+            data.trivia_state = 0
+            data.milestoneint = 1
+            data.goal = 86400
+            data.points = 4
+            data.timecapint = 1
+            data.randoopts = [False for _ in range (4)]
+            data.enabletrivialpursuit = False
+            data.enabletriviaquestion = False
+            data.timescale = 1
+            data.timescaledev = 1
+            data.giftcoins = True
+            data.giftedcoins = 0
+            data.startingcoincount = 0
+            data.ddelay = 0
+            data.deathlink = False
+            data.deathlinkcount = 0
+            data.deathlinkmercy = 0
+            data.currenttime = 0
+            data.shopstate = 0
+            data.peaktime = 0
+            data.timecaps = 1
+            data.timecap = data.timecapint
+            data.digits = 1
+            data.goalled = False
+            for x in range (6):
+                data.trivia_wedges[x][0] = 0
+                data.trivia_wedges[x][1] = 86441 + x
+                data.trivia_wedges[x][2] = True
+            for x in range (300):
+                for y in range(6):
+                    data.answered_questions[x][y][0] = 0
+                    data.answered_questions[x][y][1] = 87000 + x + (y * 300)
+            for x in range (4):
+                for y in range (10):
+                    if x == 0 and y > 1:
+                        data.shop[x][y][3] = 1
+                    else:
+                        data.shop[x][y][3] = 2
+                    data.shop[x][y][0] = 0
+                    data.shop[x][y][1] = 0
+                    data.shop[x][y][2] = 0
+                    data.shop[x][y][4] = 86400+(x*10)+(y+1)
+            data.shop[1][0][1] = 1
+            data.shop[1][0][2] = 1
+            data.shop[0][9][3] = ""
+            
+            for x in range(86400):
+                data.milestones[x][0] = (x+1)*data.milestoneint
+                data.milestones[x][2] = x+1
 
     def savedata(self,data):
         if data.archipelagoactive:
@@ -696,7 +896,34 @@ class UI:
                 "totaltime": data.totaltime,
                 "colorselect": data.colorselect,
                 "musicselect": data.currentsong,
-                "maxtime": data.maxtime
+                "milestones": data.milestones,
+                "shop": data.shop,
+                "maxtime": data.maxtime,
+                "spentcoins": data.spentcoins,
+                "answeredquestions": data.answered_questions,
+                "triviaselectedteam": data.trivia_selected_team,
+                "triviateam": data.trivia_team,
+                "triviaquestion": data.trivia_question,
+                "triviacolor": data.trivia_color,
+                "triviashowncolor": data.trivia_shown_color,
+                "trivialocation": data.trivia_location,
+                "trivialastdirection": data.trivia_last_direction,
+                "triviaroll": data.trivia_roll,
+                "triviamoves": data.trivia_moves,
+                "triviagoal": data.trivia_goal,
+                "triviaintro": data.trivia_intro,
+                "trivialastlocation": data.trivia_last_location,
+                "triviamove": data.trivia_move,
+                "trivianeeddirections": data.trivia_need_direction,
+                "trivianeedquestion": data.trivia_need_question,
+                "trivialastquestion": data.trivia_last_question,
+                "triviaquestioncharge": data.trivia_question_charge,
+                "triviausedblue": data.trivia_used_blue,
+                "triviausedgreen": data.trivia_used_green,
+                "triviaenabled": data.trivia_enabled,
+                "triviapenalty": data.trivia_penalty,
+                "triviastate": data.trivia_state,
+                "triviawedges": data.trivia_wedges
             }
             with open(os.path.join(self.current_dir,str(data.inputs[0]),str(data.inputs(1)),str(data.inputs[2]),'archipelagodata.json'), "w") as f:
                 json.dump(savedata, f, indent=4)
@@ -709,7 +936,31 @@ class UI:
                 "milestones": data.milestones,
                 "shop": data.shop,
                 "maxtime": data.maxtime,
-                "spentcoins": data.spentcoins
+                "spentcoins": data.spentcoins,
+                "answeredquestions": data.answered_questions,
+                "triviaselectedteam": data.trivia_selected_team,
+                "triviateam": data.trivia_team,
+                "triviaquestion": data.trivia_question,
+                "triviacolor": data.trivia_color,
+                "triviashowncolor": data.trivia_shown_color,
+                "trivialocation": data.trivia_location,
+                "trivialastdirection": data.trivia_last_direction,
+                "triviaroll": data.trivia_roll,
+                "triviamoves": data.trivia_moves,
+                "triviagoal": data.trivia_goal,
+                "triviaintro": data.trivia_intro,
+                "trivialastlocation": data.trivia_last_location,
+                "triviamove": data.trivia_move,
+                "trivianeeddirections": data.trivia_need_direction,
+                "trivianeedquestion": data.trivia_need_question,
+                "trivialastquestion": data.trivia_last_question,
+                "triviaquestioncharge": data.trivia_question_charge,
+                "triviausedblue": data.trivia_used_blue,
+                "triviausedgreen": data.trivia_used_green,
+                "triviaenabled": data.trivia_enabled,
+                "triviapenalty": data.trivia_penalty,
+                "triviastate": data.trivia_state,
+                "triviawedges": data.trivia_wedges
             }
             with open(os.path.join(self.current_dir,'singleplayer.json'), "w") as f:
                 json.dump(savedata, f, indent=4)
@@ -724,13 +975,54 @@ class UI:
                 data.colorselect = archipelagodata["colorselect"]
                 data.musicselect = archipelagodata["musicselect"]
                 data.maxtime = archipelagodata["maxtime"]
+                data.trivia_selected_team = archipelagodata["triviaselectedteam"]
+                data.trivia_team = archipelagodata["triviateam"]
+                data.trivia_question = archipelagodata["triviaquestion"]
+                data.trivia_color = archipelagodata["triviacolor"]
+                data.trivia_shown_color = archipelagodata["triviashowncolor"]
+                data.trivia_location = archipelagodata["trivialocation"]
+                data.trivia_last_direction = archipelagodata["trivialastdirection"]
+                data.trivia_roll = archipelagodata["triviaroll"]
+                data.trivia_moves = archipelagodata["triviamoves"]
+                data.trivia_goal = archipelagodata["triviagoal"]
+                data.trivia_intro = archipelagodata["triviaintro"]
+                data.trivia_last_location = archipelagodata["trivialastlocation"]
+                data.trivia_move = archipelagodata["triviamove"]
+                data.trivia_need_direction = archipelagodata["trivianeeddirections"]
+                data.trivia_need_question = archipelagodata["trivianeedquestion"]
+                data.trivia_last_question = archipelagodata["trivialastquestion"]
+                data.trivia_question_charge = archipelagodata["triviaquestioncharge"]
+                data.trivia_used_blue = archipelagodata["triviausedblue"]
+                data.trivia_used_green = archipelagodata["triviausedgreen"]
+                data.trivia_enabled = archipelagodata["triviaenabled"]
+                data.trivia_penalty = archipelagodata["triviapenalty"]
+                data.trivia_state = archipelagodata["triviastate"]
                 spentcoins = 0
+                data.speed_ups = 0
                 for x in range (4):
                     for y in range (10):
                         if data.shop[x][y][2] == 1:
                             spentcoins += data.shop[x][y][3]
                 data.points = data.earnedcoins + data.giftedcoins - spentcoins
                 data.spentcoins = spentcoins
+                for x in range(4):
+                    for y in range (11):
+                        for z in range (5):
+                            if data.randoopts[x] == False and (x != 0 or y != 8):
+                                data.shop[x][y][z] = archipelagodata["shop"][x][y][z]
+                            elif x == 0 and y == 8 and data.enable_trivial_pursuit == False:
+                                data.shop[x][y][z] = archipelagodata["shop"][x][y][z]
+                if data.enable_trivia_questions == False:
+                    for x in range (300):
+                        for y in range (6):
+                            for z in range (2):
+                                data.answered_questions[x][y][z] = archipelagodata["answeredquestions"][x][y][z]
+                                if data.answered_questions[x][y][0] == 1:
+                                    data.speedups += 1
+                if data.enable_trivial_pursuit == False:
+                    for x in range(6):
+                        for y in range (3):
+                            data.trivia_wedges[x][y] = archipelagodata["triviawedges"][x][y]
             else:
                 with open(os.path.join(self.current_dir,'singleplayer.json'), "r") as f:
                     singleplayerdata = json.load(f)
@@ -739,7 +1031,30 @@ class UI:
                 data.colorselect = singleplayerdata["colorselect"]
                 data.musicselect = singleplayerdata["musicselect"]
                 data.maxtime = singleplayerdata["maxtime"]
+                data.trivia_selected_team = singleplayerdata["triviaselectedteam"]
+                data.trivia_team = singleplayerdata["triviateam"]
+                data.trivia_question = singleplayerdata["triviaquestion"]
+                data.trivia_color = singleplayerdata["triviacolor"]
+                data.trivia_shown_color = singleplayerdata["triviashowncolor"]
+                data.trivia_location = singleplayerdata["trivialocation"]
+                data.trivia_last_direction = singleplayerdata["trivialastdirection"]
+                data.trivia_roll = singleplayerdata["triviaroll"]
+                data.trivia_moves = singleplayerdata["triviamoves"]
+                data.trivia_goal = singleplayerdata["triviagoal"]
+                data.trivia_intro = singleplayerdata["triviaintro"]
+                data.trivia_last_location = singleplayerdata["trivialastlocation"]
+                data.trivia_move = singleplayerdata["triviamove"]
+                data.trivia_need_direction = singleplayerdata["trivianeeddirections"]
+                data.trivia_need_question = singleplayerdata["trivianeedquestion"]
+                data.trivia_last_question = singleplayerdata["trivialastquestion"]
+                data.trivia_question_charge = singleplayerdata["triviaquestioncharge"]
+                data.trivia_used_blue = singleplayerdata["triviausedblue"]
+                data.trivia_used_green = singleplayerdata["triviausedgreen"]
+                data.trivia_enabled = singleplayerdata["triviaenabled"]
+                data.trivia_penalty = singleplayerdata["triviapenalty"]
+                data.trivia_state = singleplayerdata["triviastate"]
                 data.timecaps = 1
+                data.speedups = 0
                 for x in range (86400):
                     for y in range(4):
                         data.milestones[x][y] = singleplayerdata["milestones"][x][y]
@@ -760,6 +1075,15 @@ class UI:
                 if data.spentcoins != spentcoins:
                     print("save data is self inconsistent")
                     data.spentcoins = spentcoins
+                for x in range (300):
+                    for y in range (6):
+                        for z in range (2):
+                            data.answered_questions[x][y][z] = singleplayerdata["answeredquestions"][x][y][z]
+                            if data.answered_questions[x][y][0] == 1:
+                                    data.speedups += 1
+                for x in range(6):
+                    for y in range (3):
+                        data.trivia_wedges[x][y] = singleplayerdata["triviawedges"][x][y]
             if data.devmode == 1:
                 if data.earnedcoins <= 72:
                     data.earnedcoins = 72
@@ -795,9 +1119,13 @@ class UI:
         self.deletearchipelagobutton.updatec("Clear Archipelago Save Data",data.WINDOW_WIDTH*4/6,data.WINDOW_HEIGHT/2+80,data.colors[data.colorselect][1],0)
         if self.deletesingleplayerbutton.draw(self.display_surface):
             self.delete_singleplayer_save(data)
+            data.playingstate = 0
+            self.playing_state = 0
         if self.deletearchipelagobutton.draw(self.display_surface):
             self.saveserverdata(data)
             self.delete_archipelago_save(data)
+            data.playingstate = 0
+            self.playing_state = 0
 
     def timer(self,amount):
         self.current_time = amount
@@ -813,6 +1141,9 @@ class UI:
 
     def pointer(self,amount):
         self.time_points = amount
+
+    def speedupser(self,amount):
+        self.speed_ups = amount
 
     def timecaper(self,amount):
         self.time_cap = amount
@@ -857,14 +1188,14 @@ class UI:
             self.display_maxtimer(data)
             self.display_pointer(data)
             self.display_timecap(data)
-            self.display_shop(data)
+            self.display_shop(data,dt)
             self.display_interactables(data)
             self.display_digits(data)
             if data.giftcoins == True:
                  self.display_free_coins(data,dt)
             self.delta += dt
         elif self.playing_state == -1:
-            self.leavearch(data)
+            self.leavearch(data,dt)
             self.delta = 0
         elif self.playing_state ==-2:
             self.Display_victory(data)
@@ -872,7 +1203,7 @@ class UI:
         elif self.playing_state == -3:
             self.leavearch(data)
             self.Display_delete_control(data)
-        else:
+        elif self.playing_state == 0:
             self.display_devbutton(data)
             self.display_startmenu(data)
             self.delta = 0

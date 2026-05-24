@@ -17,6 +17,7 @@ def create_location_array():
         "Nothing Timer Digit 4": 86406,
         "Nothing Timer Digit 5": 86407,
         "Nothing Timer Digit 6": 86408,
+        "Nothing Trivial Pursuit Unlock": 86409,
         "Nothing Theme Blue": 86412,
         "Nothing Theme Green": 86413,
         "Nothing Theme Pink": 86414,
@@ -45,11 +46,23 @@ def create_location_array():
         "Nothing Sound 7": 86437,
         "Nothing Sound 8": 86438,
         "Nothing Sound 9": 86439,
-        "Nothing Sound 10": 86440
-        
+        "Nothing Sound 10": 86440,
+        "Nothing Blue Accelecharger": 86441,
+        "Nothing Pink Accelecharger": 86442,
+        "Nothing Yellow Accelecharger": 86443,
+        "Nothing Purple Accelecharger": 86444,
+        "Nothing Green Accelecharger": 86445,
+        "Nothing Orange Accelecharger": 86446,
     }
     for i in range(86400):
         LOCATION_NAMES_TO_ID.update({("Nothing Milestone " + str(i+1)): i+1})
+    for i in range(300):
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Blue Question " + str((i*6)+1)): 87000+(i*6)+1})
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Pink Question " + str((i*6)+2)): 87000+(i*6)+2})
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Yellow Question " + str((i*6)+3)): 87000+(i*6)+3})
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Purple Question " + str((i*6)+4)): 87000+(i*6)+4})
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Green Question " + str((i*6)+5)): 87000+(i*6)+5})
+        LOCATION_NAMES_TO_ID.update({("Nothing Trivial Pursuit Orange Question " + str((i*6)+6)): 87000+(i*6)+6})
 
     return LOCATION_NAMES_TO_ID
     
@@ -76,6 +89,28 @@ def create_regular_locations(world: NothingWorld) -> None:
     
     start_locations = get_location_names_with_ids(start_locations_intermediate)
     start.add_locations(start_locations,Nothing_Archipelago_Location)
+
+    trivial_pursuit_locations = get_location_names_with_ids(
+        [
+            "Nothing Blue Accelecharger",
+            "Nothing Pink Accelecharger",
+            "Nothing Yellow Accelecharger",
+            "Nothing Purple Accelecharger",
+            "Nothing Green Accelecharger",
+            "Nothing Orange Accelecharger"
+        ]
+    )
+
+    trivial_pursuit_questions_intermediate = []
+    for i in range (300):
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Blue Question " + str((i+6)+1))
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Pink Question " + str((i+6)+2))
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Yellow Question " + str((i+6)+3))
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Purple Question " + str((i+6)+4))
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Green Question " + str((i+6)+5))
+        trivial_pursuit_questions_intermediate.append("Nothing Trivial Pursuit Orange Question " + str((i+6)+6))
+
+    trivial_pursuit_questions = get_location_names_with_ids(trivial_pursuit_questions_intermediate)
 
     shopdigits_locations = get_location_names_with_ids(
         [
@@ -142,6 +177,14 @@ def create_regular_locations(world: NothingWorld) -> None:
     if world.options.shop_upgrades:
         shopdigits = world.get_region("shopdigits")
         shopdigits.add_locations(shopdigits_locations, Nothing_Archipelago_Location)
+
+    if world.options.enable_trivial_pursuit:
+        trivialpursuit = world.get_region("trivialpursuit")
+        trivialpursuit.add_locations(trivial_pursuit_locations, Nothing_Archipelago_Location)
+
+    if world.options.enable_trivial_pursuit_questions:
+        triviaquestions = world.get_region("triviaquestions")
+        triviaquestions.add_locations(trivial_pursuit_questions, Nothing_Archipelago_Location)
 
     if (world.options.goal > 1200):
         if world.options.shop_upgrades:

@@ -42,6 +42,19 @@ class Goal(Choice):
 
     default = option_20_minutes
 
+class enabletrivialpursuit(Toggle):
+    """
+    Add the trivial pursuit unlock and wedges(accelechargers) into randomization
+    """
+
+    display_name = "Randomize Trivial Pursuit"
+
+class enabletriviaquestions(Toggle):
+    """
+    Add each trivial pursuit question as a check, adds progressive timer speed items
+    """
+
+    display_name = "Randomize Trivial Pursuit Questions"
 
 class shopupgrades(DefaultOnToggle):
     """
@@ -211,6 +224,8 @@ class TimeDilation(Range):
 @dataclass
 class NothingOptions(PerGameCommonOptions):
     goal: Goal
+    enable_trivial_pursuit: enabletrivialpursuit
+    enable_trivia_questions: enabletriviaquestions
     shop_upgrades: shopupgrades
     shop_colors: shopcolors
     shop_music: shopmusic
@@ -226,7 +241,7 @@ class NothingOptions(PerGameCommonOptions):
 option_groups = [
     OptionGroup(
         "Randomizer Options",
-        [shopupgrades, shopcolors, shopmusic, shopsounds],
+        [shopupgrades, shopcolors, shopmusic, shopsounds, enabletrivialpursuit, enabletriviaquestions],
     ),
     OptionGroup(
         "Game Duration Options",
@@ -242,6 +257,8 @@ option_groups = [
 option_presets = {
     "4-hour game": {
         "goal": 1800,
+        "enable_trivial_pursuit": False,
+        "enable_trivia_questions": False,
         "shop_upgrades": True,
         "shop_colors": True,
         "shop_music": True,
@@ -256,6 +273,8 @@ option_presets = {
     },
     "Everyone else should suffer": {
         "goal": 86400,
+        "enable_trivial_pursuit": True,
+        "enable_trivia_questions": True,
         "shop_upgrades": True,
         "shop_colors": True,
         "shop_music": True,

@@ -13,6 +13,9 @@ ITEM_NAME_TO_ID = {
     "Nothing Item Timer Digit": 3,
     "Nothing Item Progressive Time Cap": 4,
     "Nothing Item Gifted Coin": 5,
+    "Nothing Item Trivial Pursuit": 6,
+    "Nothing Item Shop Upgrade 10": 7,
+    "Nothing Item Progressive Timer Speed": 8,
     "Nothing Item Song 1": 11,
     "Nothing Item Song 2": 12,
     "Nothing Item Song 3": 13,
@@ -41,7 +44,13 @@ ITEM_NAME_TO_ID = {
     "Nothing Item Theme Orange": 37,
     "Nothing Item Theme Yellow": 38,
     "Nothing Item Theme Purple": 39,
-    "Nothing Item Theme Cyan": 40
+    "Nothing Item Theme Cyan": 40,
+    "Nothing Item Blue Accelecharger": 41,
+    "Nothing Item Pink Accelecharger": 42,
+    "Nothing Item Yellow Accelecharger": 43,
+    "Nothing Item Purple Accelecharger": 44,
+    "Nothing Item Green Accelecharger": 45,
+    "Nothing Item Orange Accelecharger": 46,
 }
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
@@ -50,6 +59,7 @@ DEFAULT_ITEM_CLASSIFICATIONS = {
     "Nothing Item Timer Digit": ItemClassification.progression | ItemClassification.useful,
     "Nothing Item Progressive Time Cap": ItemClassification.progression | ItemClassification.useful,
     "Nothing Item Gifted Coin": ItemClassification.useful | ItemClassification.filler,
+    "Nothing Item Trivial Pursuit": ItemClassification.progression | ItemClassification.useful,
     "Nothing Item Song 1": ItemClassification.filler,
     "Nothing Item Song 2": ItemClassification.filler,
     "Nothing Item Song 3": ItemClassification.filler,
@@ -78,7 +88,13 @@ DEFAULT_ITEM_CLASSIFICATIONS = {
     "Nothing Item Theme Orange": ItemClassification.filler,
     "Nothing Item Theme Yellow": ItemClassification.filler,
     "Nothing Item Theme Purple": ItemClassification.filler,
-    "Nothing Item Theme Cyan": ItemClassification.filler
+    "Nothing Item Theme Cyan": ItemClassification.filler,
+    "Nothing Item Blue Accelecharger": ItemClassification.progression,
+    "Nothing Item Pink Accelecharger": ItemClassification.progression,
+    "Nothing Item Yellow Accelecharger": ItemClassification.progression,
+    "Nothing Item Purple Accelecharger": ItemClassification.progression,
+    "Nothing Item Green Accelecharger": ItemClassification.progression,
+    "Nothing Item Orange Accelecharger": ItemClassification.progression,
 }
 
 
@@ -96,6 +112,19 @@ def create_item_with_correct_classification(world: NothingWorld, name: str) -> N
 def create_all_items(world: NothingWorld) -> None:
     itempool: list[Item] = []
     
+    if world.options.enable_trivial_pursuit:
+        itempool.append(world.create_item("Nothing Item Trivial Pursuit"))
+        itempool.append(world.create_item("Nothing Item Blue Accelecharger"))
+        itempool.append(world.create_item("Nothing Item Pink Accelecharger"))
+        itempool.append(world.create_item("Nothing Item Yellow Accelecharger"))
+        itempool.append(world.create_item("Nothing Item Purple Accelecharger"))
+        itempool.append(world.create_item("Nothing Item Green Accelecharger"))
+        itempool.append(world.create_item("Nothing Item Orange Accelecharger"))
+    
+    if world.options.enable_trivial_pursuit_questions:
+        for _ in range(300):
+            itempool.append(world.create_item("Nothing Item Progressive Timer Speed"))
+
     if world.options.shop_upgrades:
         itempool.append(world.create_item("Nothing Item Timer Digit"))
         itempool.append(world.create_item("Nothing Item Timer Digit"))

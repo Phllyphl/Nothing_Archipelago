@@ -23,6 +23,14 @@ def create_all_regions(world: NothingWorld) -> None:
         shopdigits = Region("shopdigits", world.player, world.multiworld)
         regions.append(shopdigits)
 
+    if world.options.enable_trivial_pursuit:
+        trivialpursuit = Region("trivialpursuit", world.player, world.multiworld)
+        regions.append(trivialpursuit)
+
+    if world.options.enable_trivial_pursuit_questions:
+        triviaquestions = Region("triviaquestions", world.player, world.multiworld)
+        regions.append(triviaquestions)
+
     if world.options.shop_colors:
         if (world.options.gift_coins or world.options.goal > 1200):
             shopcolors = Region("shopcolors", world.player, world.multiworld)
@@ -46,6 +54,15 @@ def connect_regions(world: NothingWorld) -> None:
     if world.options.shop_upgrades:
         shopdigits = world.get_region("shopdigits")
         start.connect(shopdigits, "Start to shopdigits")
+
+    if world.options.enable_trivial_pursuit:
+        trivialpursuit = world.get_region("trivialpursuit")
+        start.connect(trivialpursuit, "Start to trivialpursuit")
+
+    if world.options.enable_trivial_pursuit_questions:
+        triviaquestions = world.get_region("triviaquestions")
+        start.connect(triviaquestions, "Start to triviaquestions")
+
 
     if (world.options.goal > 1200): 
         if world.options.shop_upgrades:   

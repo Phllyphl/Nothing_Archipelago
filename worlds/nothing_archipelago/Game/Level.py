@@ -19,6 +19,7 @@ class Level:
 
     def currenttimespent(self,dt):
         if self.data.playingstate == 2:
+            self.data.currenttime += dt * (self.data.timescale+self.data.speedups) * self.data.timescaledev
             if self.data.currenttime > self.data.timecap:
                 self.data.currenttime = self.data.timecap
             elif self.data.digits == 1 and self.data.currenttime > 9:
@@ -45,8 +46,6 @@ class Level:
                 self.data.currenttime = 86399
                 if self.data.points == 0:
                     self.data.points = 1
-            else:
-                self.data.currenttime += dt * self.data.timescale * self.data.timescaledev
         else:
             self.data.currenttime = 0
 

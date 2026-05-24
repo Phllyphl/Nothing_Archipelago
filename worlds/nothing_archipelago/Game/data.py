@@ -1,6 +1,9 @@
+from .trivia_questions import define_questions
+from .positions import define_locations
+
 class Data:
-    def __init__(self,ui, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins,
-                          milestone_interval, timecap_interval, Starting_coin_count, Death_link, Death_link_mercy, Time_dilation):
+    def __init__(self,ui, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins, milestone_interval, timecap_interval,
+                           Starting_coin_count, Death_link, Death_link_mercy, Time_dilation, enable_trivial_pursuit, enable_trivia_questions):
         self.ui = ui
         self.milestoneint = milestone_interval
         self.archipelagoactive = False
@@ -9,6 +12,8 @@ class Data:
         self._points = Starting_coin_count
         self.timecapint = timecap_interval
         self.randoopts = [False for _ in range (4)]
+        self.enabletrivialpursuit = enable_trivial_pursuit
+        self.enabletriviaquestion = enable_trivia_questions
 
         self.WINDOW_WIDTH = 1920
         self.WINDOW_HEIGHT = 1080
@@ -29,6 +34,7 @@ class Data:
 
         self.devcount = 0
         self.timescale = Time_dilation
+        self._speedups = 0
         self.timescaledev = 1
         self.devmode = 0
         self.giftcoins = gift_coins
@@ -51,6 +57,7 @@ class Data:
         self.connected = 0
         self._maxtime = 0
         self._currenttime = 0
+        #0 = main menu, 1 = click to start, 2 = timer active, 3 = you died, -1 = archipelago connect menu, -2 = goal menu, -3 = delete save menu, -4 = trivial pursuit
         self._playingstate = 0
         self._shopstate = 0
         self._peaktime = 0
@@ -83,7 +90,7 @@ class Data:
         self.names[5][0] = "Unlock next Digit : "
         self.names[6][0] = "Unlock next Digit : "
         self.names[7][0] = "Unlock next Digit : "
-        self.names[8][0] = ""
+        self.names[8][0] = "Unlock Trivial Pursuit: "
         self.names[9][0] = ""
         self.names[10][0] = ""
         self.names[0][1] = "Gray       : "
@@ -157,7 +164,7 @@ class Data:
         #[x][y][1] = is shop item purchased
         #[x][y][2] = is shop item recieved
         #[x][y][3] = item cost
-        #[x][y][4] = archipelago location balue
+        #[x][y][4] = archipelago location value
         self._shop = [[[0 for _ in range (5)] for _ in range (11)] for _ in range (4)]
         self._shop[1][0][1] = 1
         self._shop[1][0][2] = 1
@@ -168,12 +175,90 @@ class Data:
                 else:
                     self._shop[x][y][3] = 2
                 self._shop[x][y][4] = 86400+(x*10)+(y+1)
-        self._shop[0][8][3] = ""
+        
         self._shop[0][9][3] = ""
+        #self.questions[card][question][answers or line or result][line/answer index]
+        self.questions = [[[[0 for _ in range (4)] for _ in range (3)] for _ in range (6)] for _ in range (300)]
+        define_questions(self)
+        #self.answered_questions[card][question][data]
+        #[x][y][0] = has question been answered
+        #[x][y][1] = archipelago location value
+        self.answered_questions = [[[0 for _ in range(2)] for _ in range(6)] for _ in range(300)]
+        for x in range (300):
+            for y in range(6):
+                self.answered_questions[x][y][1] = 87000 + x + (y * 300)
+        self.trivia_selected_team = False
+        self.trivia_team = 0
+        self.trivia_question = 0
+        self.trivia_color = 0
+        self.trivia_shown_color = 0
+        self.positions = [[0 for _ in range (2)] for _ in range(73)]
+        define_locations(self)
+        self.trivia_location = 0
+        self.trivia_last_direction = 0
+        self.trivia_roll = 0
+        self.trivia_moves = 0
+        self.trivia_goal = False
+        self.trivia_intro = False
+        self.trivia_last_location = 0
+        self.trivia_move = False
+        self.trivia_need_direction = True
+        self.trivia_need_question = False
+        self.trivia_last_question = False
+        self.trivia_question_charge = True
+        self.trivia_used_blue = False
+        self.trivia_used_green = False
+        self.trivia_enabled = True
+        self.trivia_penalty = 0
+        #0 = intro & team select, 1 = roll, 2 = start move, 3 = moving, 4 = question select and answer, 5 = penalty, 6 =victory
+        self.trivia_state = 0
+        #self.trivia_wedges[color][data]
+        #[x][0] = has wedges been earned
+        #[x][1] = archipelago location value
+        self.trivia_wedges = [[0 for _ in range(3)] for _ in range(6)]
+        for x in range (6):
+            self.trivia_wedges[x][1] = 86441 + x
+            self.trivia_wedges[x][2] = True
+        self.trivia_abilities = [["" for _ in range(7)] for _ in range(10)]
+        for x in range (10):
+            self.trivia_abilities[x][2] = "Pink: see card number"
+            self.trivia_abilities[x][3] = "Yellow: see questions for other colors"
+            self.trivia_abilities[x][4] = "Purple: return to center of board instead of rolling"
+            self.trivia_abilities[x][6] = "Orange: reduce penalties by half"
+        self.trivia_abilities[0][0] = "Teku"
+        self.trivia_abilities[0][1] = "Blue: add +1 to dice roll"
+        self.trivia_abilities[0][5] = "Green: add -1 to dice roll"
+        self.trivia_abilities[1][0] = "Metal Maniacs"
+        self.trivia_abilities[1][1] = "Blue: set roll to 1"
+        self.trivia_abilities[1][5] = "Green: set roll to 5"
+        self.trivia_abilities[2][0] = "Silencerz"
+        self.trivia_abilities[2][1] = "Blue: double dice roll"
+        self.trivia_abilities[2][5] = "Green: half dice roll"
+        self.trivia_abilities[3][0] = "Racing Drones"
+        self.trivia_abilities[3][1] = "Blue: you can change directions during movement"
+        self.trivia_abilities[3][5] = "Green: instead of moving, switch sides of the board"
+        self.trivia_abilities[4][0] = "CLYP"
+        self.trivia_abilities[4][1] = "Blue: triple dice roll"
+        self.trivia_abilities[4][5] = "Green: you do not have to move your full roll"
+        self.trivia_abilities[5][0] = "Wave Rippers"
+        self.trivia_abilities[5][1] = "Blue: add +2 to dice roll"
+        self.trivia_abilities[5][5] = "Green: add -2 to dice roll"
+        self.trivia_abilities[6][0] = "Dune Ratz"
+        self.trivia_abilities[6][1] = "Blue: you can earn any accelecharger on any wedge space"
+        self.trivia_abilities[6][5] = "Green: You can treat all spaces as 'roll again' spaces"
+        self.trivia_abilities[7][0] = "Street Breed"
+        self.trivia_abilities[7][1] = "Blue: you can reroll the dice once per question"
+        self.trivia_abilities[7][5] = "Green: you can roll a second die"
+        self.trivia_abilities[8][0] = "Scorchers"
+        self.trivia_abilities[8][1] = "Blue: skip one question between correct answers"
+        self.trivia_abilities[8][5] = "Green: add +1, 2, or 3 to dice roll"
+        self.trivia_abilities[9][0] = "Road Beasts"
+        self.trivia_abilities[9][1] = "Blue: after correctly answering a question you can return to your previous position"
+        self.trivia_abilities[9][5] = "Green: move to an adjacent roll again spaces"
         
 
-    def update_arch_settings(self, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins,
-                          milestone_interval, timecap_interval, Starting_coin_count, Death_link, Death_link_mercy, Time_dilation):
+    def update_arch_settings(self, goal, shop_upgrades, shop_colors, shop_music, shop_sounds, gift_coins, milestone_interval, timecap_interval,
+                            Starting_coin_count, Death_link, Death_link_mercy, Time_dilation, enable_trivial_pursuit, enable_trivia_questions):
         self.connected = 1
         self.milestoneint = milestone_interval
         for x in range(86400):
@@ -192,6 +277,8 @@ class Data:
         self.startingcoincount = Starting_coin_count
         self.deathlink = Death_link
         self.deathlinkmercy = Death_link_mercy
+        self.enabletrivialpursuit = enable_trivial_pursuit
+        self.enabletriviaquestion = enable_trivia_questions
 
 
     @property
@@ -265,6 +352,15 @@ class Data:
     def timecap(self,value):
         self._timecap = value
         self.ui.timecaper(self.timecap)
+
+    @property
+    def speedups(self):
+        return self._speedups
+    
+    @speedups.setter
+    def speedups(self,value):
+        self._speedups = value
+        self.ui.speedupser(self.speedups)
 
     @property
     def timecaps(self):

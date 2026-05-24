@@ -42,9 +42,13 @@ class archipelagoUI:
             elif location <= 86409:
                 data.spentcoins += data.shop[((location-86401)//10)%10][(location-86401)%10][3]
                 data.shop[((location-86401)//10)%10][(location-86401)%10][1] = 1
-            else:
+            elif location <= 86440:
                 data.spentcoins += data.shop[((location-86400)//10)%10][(location-86400)%10][3]
                 data.shop[((location-86400)//10)%10][(location-86400)%10][1] = 1
+            elif location <= 86446:
+                data.trivia_wedges[location-86441][0] = 1
+            else:
+                data.answered_questions[(location-87001) // 6][(location-87001) % 6][0] = 1
 
     def checklocations(self,data, checked_locations: set[int]) -> None:
         if data.checked_locations_player == checked_locations:
@@ -59,6 +63,7 @@ class archipelagoUI:
         digitcount = 0
         data.timecaps = 1
         data.giftedcoins = 0
+        data.speedups = 0
         for item in items:
             if item.item == 1:
                 data.shop[0][0][2] = 1
@@ -71,6 +76,10 @@ class archipelagoUI:
                 data.timecaps += 1
             elif item.item == 5:
                 data.giftedcoins += 1
+            elif item.item == 6:
+                data.shop[0][8][2] = 1
+            elif item.item == 8:
+                data.speedupds += 1
             elif item.item == 11:
                 data.shop[2][0][2] = 1
             elif item.item == 12:
@@ -129,6 +138,18 @@ class archipelagoUI:
                 data.shop[3][8][2] = 1
             elif item.item == 40:
                 data.shop[3][9][2] = 1
+            elif item.item == 41:
+                data.trivia_wedges[0][0] = 1
+            elif item.item == 42:
+                data.trivia_wedges[1][0] = 1
+            elif item.item == 43:
+                data.trivia_wedges[2][0] = 1
+            elif item.item == 44:
+                data.trivia_wedges[3][0] = 1
+            elif item.item == 45:
+                data.trivia_wedges[4][0] = 1
+            elif item.item == 46:
+                data.trivia_wedges[5][0] = 1
         data.giftedcoins += data.startingcoincount
         data.timecap = data.timecaps * data.timecapint
         if data.giftedcoins > data.spentcoins:
@@ -181,5 +202,4 @@ class archipelagoUI:
             self.serverinputs(data)
         elif data.playingstate == -3:
             self.deleteinputs(data)
-        elif data.playingstate > 0 and data.archipelagoactive == True:
-            self.connected(data)
+        self.connected(data)
